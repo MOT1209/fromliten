@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الآلة الحاسبة الذكية | Smart Calculator</title>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Orbitron:wght@400;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="dark-mode">
+    <div class="calculator-container">
+        <!-- Main Calculator -->
+        <div class="calculator reveal-anim" id="calculator-ui">
+            <div class="display">
+                <div class="previous-operand" id="previous-operand"></div>
+                <div class="current-operand" id="current-operand">0</div>
+            </div>
+            <div class="buttons">
+                <button class="btn col-2 action-btn" data-action="clear" id="clear">AC</button>
+                <button class="btn action-btn" data-action="delete"><i class="fas fa-backspace"></i></button>
+                <button class="btn operator-btn" data-operator="/">÷</button>
+
+                <button class="btn number-btn" data-number="7">7</button>
+                <button class="btn number-btn" data-number="8">8</button>
+                <button class="btn number-btn" data-number="9">9</button>
+                <button class="btn operator-btn" data-operator="*">×</button>
+
+                <button class="btn number-btn" data-number="4">4</button>
+                <button class="btn number-btn" data-number="5">5</button>
+                <button class="btn number-btn" data-number="6">6</button>
+                <button class="btn operator-btn" data-operator="-">−</button>
+
+                <button class="btn number-btn" data-number="1">1</button>
+                <button class="btn number-btn" data-number="2">2</button>
+                <button class="btn number-btn" data-number="3">3</button>
+                <button class="btn operator-btn" data-operator="+">+</button>
+
+                <button class="btn number-btn col-2" data-number="0">0</button>
+                <button class="btn number-btn" data-number=".">.</button>
+                <button class="btn equals-btn" id="equals-btn">=</button>
+            </div>
+        </div>
+
+        <!-- Secret Vault Area (Hidden by default) -->
+        <div class="vault-container hidden" id="vault-ui">
+            <div class="vault-header">
+                <h2><i class="fas fa-shield-halved"></i> الخزنة السرية</h2>
+                <button id="close-vault" class="close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="vault-content">
+                <div class="vault-grid">
+                    <div class="vault-item">
+                        <i class="fas fa-image"></i>
+                        <span>الصور</span>
+                    </div>
+                    <div class="vault-item">
+                        <i class="fas fa-video"></i>
+                        <span>الفيديوهات</span>
+                    </div>
+                    <div class="vault-item">
+                        <i class="fas fa-file-lines"></i>
+                        <span>الملاحظات</span>
+                    </div>
+                    <div class="vault-item">
+                        <i class="fas fa-lock"></i>
+                        <span>كلمات المرور</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification hidden"></div>
+
+    <!-- Script -->
+    <script src="js/app.js"></script>
+</body>
+
+</html>

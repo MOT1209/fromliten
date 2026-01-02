@@ -1,0 +1,267 @@
+/* ==================== CSS Variables ==================== */
+:root {
+    --bg-main: #0a0e14;
+    --calc-bg: rgba(20, 25, 35, 0.8);
+    --display-bg: #161b22;
+    --text-primary: #ffffff;
+    --text-secondary: #8b949e;
+    --accent-color: #00d2ff;
+    --operator-color: #ff9f0a;
+    --equals-color: #32d74b;
+    --action-color: #ff453a;
+    --btn-bg: #21262d;
+    --btn-hover: #30363d;
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+/* ==================== Base Styles ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Cairo', sans-serif;
+}
+
+body {
+    background: var(--bg-main);
+    background-image:
+        radial-gradient(circle at 20% 30%, rgba(0, 210, 255, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(50, 215, 75, 0.05) 0%, transparent 40%);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-primary);
+    overflow: hidden;
+}
+
+.calculator-container {
+    perspective: 1000px;
+}
+
+/* ==================== Calculator UI ==================== */
+.calculator {
+    background: var(--calc-bg);
+    backdrop-filter: blur(20px);
+    width: 350px;
+    padding: 25px;
+    border-radius: 30px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.display {
+    background: var(--display-bg);
+    margin-bottom: 25px;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: left;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    border: 1px solid var(--glass-border);
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.previous-operand {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    min-height: 1.5rem;
+    word-break: break-all;
+}
+
+.current-operand {
+    color: var(--text-primary);
+    font-size: 2.5rem;
+    font-weight: 700;
+    word-break: break-all;
+    font-family: 'Orbitron', sans-serif;
+    margin-top: 5px;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.btn {
+    border: none;
+    background: var(--btn-bg);
+    color: var(--text-primary);
+    padding: 20px 0;
+    border-radius: 18px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.btn:hover {
+    background: var(--btn-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.col-2 {
+    grid-column: span 2;
+}
+
+.operator-btn {
+    color: var(--operator-color);
+    background: rgba(255, 159, 10, 0.1);
+}
+
+.operator-btn:hover {
+    background: var(--operator-color);
+    color: white;
+}
+
+.equals-btn {
+    background: var(--equals-color);
+    color: #fff;
+}
+
+.equals-btn:hover {
+    background: #28b840;
+    box-shadow: 0 4px 15px rgba(50, 215, 75, 0.4);
+}
+
+.action-btn {
+    color: var(--action-color);
+    background: rgba(255, 69, 58, 0.1);
+}
+
+.action-btn:hover {
+    background: var(--action-color);
+    color: white;
+}
+
+/* ==================== Vault UI ==================== */
+.vault-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    background: #1a202c;
+    border-radius: 30px;
+    padding: 30px;
+    border: 1px solid var(--accent-color);
+    box-shadow: 0 0 50px rgba(0, 210, 255, 0.3);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.vault-container.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.hidden {
+    display: none;
+}
+
+.vault-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid rgba(0, 210, 255, 0.2);
+    padding-bottom: 15px;
+}
+
+.vault-header h2 {
+    font-size: 1.5rem;
+    color: var(--accent-color);
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close-btn:hover {
+    color: var(--action-color);
+}
+
+.vault-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.vault-item {
+    background: #2d3748;
+    padding: 25px;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.vault-item:hover {
+    background: #3a4a61;
+    border-color: var(--accent-color);
+    transform: translateY(-5px);
+}
+
+.vault-item i {
+    font-size: 2.5rem;
+    color: var(--accent-color);
+}
+
+.vault-item span {
+    font-weight: 600;
+}
+
+/* ==================== Animations ==================== */
+.reveal-anim {
+    animation: fadeInScale 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.notification {
+    position: fixed;
+    bottom: 30px;
+    background: var(--btn-bg);
+    padding: 15px 30px;
+    border-radius: 50px;
+    border: 1px solid var(--accent-color);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}

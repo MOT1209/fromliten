@@ -38,8 +38,14 @@ const elements = {
     searchInput: document.getElementById('search-input'),
     searchResults: document.getElementById('search-results'),
     bookmarksList: document.getElementById('bookmarks-list'),
-    reciterSelect: document.getElementById('reciter-select')
+    reciterSelect: document.getElementById('reciter-select'),
+    increaseFontBtn: document.getElementById('increase-font'),
+    decreaseFontBtn: document.getElementById('decrease-font'),
+    saveSurahBtn: document.getElementById('save-surah-main'),
+    lastReadBtn: document.getElementById('last-read-btn')
 };
+
+let currentFontSize = parseFloat(localStorage.getItem('quranFontSize')) || 2.3;
 
 // ==================== Initialize App ====================
 document.addEventListener('DOMContentLoaded', () => {
@@ -108,6 +114,14 @@ async function loadSurah(surahNumber) {
 function updateSurahHeader() {
     elements.surahName.textContent = currentSurah.name;
     elements.surahDetails.textContent = `${currentSurah.englishName} • ${currentSurah.numberOfAyahs} آية • ${currentSurah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}`;
+
+    // Update Save Button State
+    const isSurahBookmarked = bookmarks.some(b => b.surah === currentSurah.number && b.type === 'surah');
+    if (elements.saveSurahBtn) {
+        elements.saveSurahBtn.classList.toggle('saved', isSurahBookmarked);
+        elements.saveSurahBtn.innerHTML = isSurahBookmarked ? '<i class="fas fa-star" style="color: #fbbf24;"></i> تم الحفظ' : '<i class="far fa-star"></i> حفظ السورة';
+        elements.saveSurahBtn.onclick = () => toggleSurahBookmark(currentSurah.number, currentSurah.name);
+    }
 }
 
 // ==================== Display Verses ====================
@@ -118,20 +132,21 @@ function displayVerses() {
 
         return `<span class="verse-item ${isBookmarked ? 'bookmarked' : ''}" id="verse-${index}" data-verse-index="${index}" onclick="playVerse(${index})" title="انقر للاستماع">
             ${ayah.text}
-            <span class="verse-number" onclick="event.stopPropagation(); toggleBookmark(${currentSurah.number}, ${ayah.numberInSurah}, '${ayah.text.replace(/'/g, "\\'")}', '${currentSurah.name}')" title="${isBookmarked ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}">${ayah.numberInSurah}</span>
+            <span class="verse-number" onclick="event.stopPropagation(); toggleBookmark(${currentSurah.number}, ${ayah.numberInSurah}, '${ayah.text.replace(/'/g, "\\'")}', '${currentSurah.name}')" title="${isBookmarked ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}">${ayah.numberInAyah}</span>
         </span> `;
     }).join('');
 
-    // Mushaf Page Header (Top bar inside the frame)
+    // Mushaf Page Header
+    const juz = currentSurah.ayahs[0].juz;
     const pageHeader = `
         <div class="surah-header-mushaf">
             <div class="side-text">سُورَةُ ${currentSurah.name}</div>
-            <div class="side-text">الجزء الأول</div>
+            <div class="side-text">الجزء ${juz}</div>
         </div>
     `;
 
     elements.versesContainer.innerHTML = `
-        <div class="verses-wrapper">
+        <div class="verses-wrapper" style="font-size: ${currentFontSize}rem;">
             ${pageHeader}
             ${currentSurah.number !== 1 && currentSurah.number !== 9 ? '<p style="text-align: center; font-size: 2.5rem; margin-top: 1rem; margin-bottom: 2rem; color: #2c7a7b;">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>' : ''}
             <div class="mushaf-text-content">
@@ -139,6 +154,13 @@ function displayVerses() {
             </div>
         </div>
     `;
+
+    // Save as last read
+    saveLastRead(currentSurah.number);
+}
+
+function saveLastRead(surahNumber) {
+    localStorage.setItem('lastReadSurah', surahNumber);
 }
 
 // ==================== Highlight Active Surah ====================
@@ -349,7 +371,10 @@ function toggleSurahBookmark(surahNumber, surahName) {
 
 function saveAndRefresh() {
     localStorage.setItem('quranBookmarks', JSON.stringify(bookmarks));
-    if (currentSurah) displayVerses(); // Only refresh verses if a surah is currently displayed
+    if (currentSurah) {
+        displayVerses();
+        updateSurahHeader(); // Refresh header button too
+    }
     displayBookmarks();
 }
 
@@ -549,6 +574,31 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 // ==================== Event Listeners Setup ====================
 function setupEventListeners() {
+    // Font controls
+    elements.increaseFontBtn.addEventListener('click', () => {
+        if (currentFontSize < 4) {
+            currentFontSize += 0.2;
+            applyFontSize();
+        }
+    });
+
+    elements.decreaseFontBtn.addEventListener('click', () => {
+        if (currentFontSize > 1.5) {
+            currentFontSize -= 0.1; // Decrease by smaller increments
+            applyFontSize();
+        }
+    });
+
+    // Last read continue
+    elements.lastReadBtn.addEventListener('click', () => {
+        const lastRead = localStorage.getItem('lastReadSurah');
+        if (lastRead) {
+            loadSurah(lastRead);
+        } else {
+            alert('لا توجد قراءة سابقة محفوظة');
+        }
+    });
+
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
         if (e.key === ' ' && elements.audioPlayer.classList.contains('active')) {
@@ -562,4 +612,12 @@ function setupEventListeners() {
             elements.prevVerseBtn.click();
         }
     });
+}
+
+function applyFontSize() {
+    const wrapper = document.querySelector('.verses-wrapper');
+    if (wrapper) {
+        wrapper.style.fontSize = `${currentFontSize}rem`;
+    }
+    localStorage.setItem('quranFontSize', currentFontSize);
 }

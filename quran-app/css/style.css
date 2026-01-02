@@ -102,7 +102,17 @@ body {
 
 .header-controls {
     display: flex;
+    align-items: center;
     gap: 0.5rem;
+}
+
+.font-controls {
+    display: flex;
+    gap: 0.3rem;
+    margin: 0 0.5rem;
+    padding: 0 0.5rem;
+    border-right: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
 }
 
 .icon-btn {
@@ -331,9 +341,35 @@ body {
     transition: all 0.3s ease;
 }
 
-.reciter-select:focus {
-    outline: none;
+.save-surah-btn-header {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.6rem 1.2rem;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.save-surah-btn-header:hover {
+    background: var(--accent-primary);
+    color: white;
     border-color: var(--accent-primary);
+}
+
+.save-surah-btn-header.saved {
+    background: rgba(44, 122, 123, 0.1);
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+}
+
+.dark-mode .save-surah-btn-header.saved {
+    background: rgba(251, 191, 36, 0.1);
 }
 
 /* ==================== QURAN-STYLE CONTINUOUS TEXT ==================== */
