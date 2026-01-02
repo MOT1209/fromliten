@@ -3,7 +3,16 @@ class Calculator {
         this.previousOperandElement = previousOperandElement;
         this.currentOperandElement = currentOperandElement;
         this.clear();
-        this.secretCode = "1111";
+        this.loadPassword();
+    }
+
+    loadPassword() {
+        this.secretCode = localStorage.getItem('vaultPassword') || null;
+    }
+
+    setPassword(password) {
+        localStorage.setItem('vaultPassword', password);
+        this.secretCode = password;
     }
 
     clear() {
@@ -60,7 +69,7 @@ class Calculator {
                 break;
             case "/":
                 if (current === 0) {
-                    alert("لا يمكن القسمة على صفر!");
+                    showNotification("لا يمكن القسمة على صفر!");
                     this.clear();
                     return;
                 }
@@ -68,11 +77,6 @@ class Calculator {
                 break;
             default:
                 return;
-        }
-
-        // Vault check
-        if (this.currentOperand === this.secretCode) {
-            // This is a special case if we want to trigger on equals
         }
 
         this.currentOperand = computation.toString();
@@ -119,10 +123,49 @@ const previousOperandElement = document.getElementById('previous-operand');
 const currentOperandElement = document.getElementById('current-operand');
 const calculatorUI = document.getElementById('calculator-ui');
 const vaultUI = document.getElementById('vault-ui');
-const closeVaultBtn = document.getElementById('close-vault');
+const lockVaultBtn = document.getElementById('lock-vault-btn');
+
+// Setup Modal Elements
+const setupModal = document.getElementById('setup-modal');
+const pass1Input = document.getElementById('pass1');
+const pass2Input = document.getElementById('pass2');
+const savePassBtn = document.getElementById('save-pass-btn');
 
 const calculator = new Calculator(previousOperandElement, currentOperandElement);
 
+// Check if password exists on load
+document.addEventListener('DOMContentLoaded', () => {
+    if (!calculator.secretCode) {
+        setupModal.classList.remove('hidden');
+    }
+});
+
+// Setup Password Logic
+savePassBtn.addEventListener('click', () => {
+    const p1 = pass1Input.value;
+    const p2 = pass2Input.value;
+
+    if (!p1 || !p2) {
+        showNotification("الرجاء إدخال الرمز في الحقلين");
+        return;
+    }
+
+    if (p1 !== p2) {
+        showNotification("الرموز غير متطابقة!");
+        return;
+    }
+
+    if (p1.length < 4) {
+        showNotification("يجب أن يتكون الرمز من 4 أرقام على الأقل");
+        return;
+    }
+
+    calculator.setPassword(p1);
+    setupModal.classList.add('hidden');
+    showNotification("تم إعداد الرمز بنجاح! جرب إدخاله في الحاسبة");
+});
+
+// Calculator event listeners
 numberButtons.forEach(button => {
     button.addEventListener('click', () => {
         calculator.appendNumber(button.innerText);
@@ -138,8 +181,7 @@ operationButtons.forEach(button => {
 });
 
 equalsButton.addEventListener('click', button => {
-    // Check for secret code BEFORE computing
-    if (calculator.currentOperand === calculator.secretCode) {
+    if (calculator.currentOperand === calculator.secretCode && calculator.secretCode !== null) {
         openVault();
         calculator.clear();
         calculator.updateDisplay();
@@ -160,9 +202,9 @@ deleteButton.addEventListener('click', button => {
     calculator.updateDisplay();
 });
 
-// Vault Logic
+// Vault Interaction Logic
 function openVault() {
-    calculatorUI.style.transform = "rotateY(180deg) scale(0.8)";
+    calculatorUI.style.transform = "scale(0.8) translateY(-50px)";
     calculatorUI.style.opacity = "0";
     setTimeout(() => {
         calculatorUI.classList.add('hidden');
@@ -170,7 +212,7 @@ function openVault() {
         setTimeout(() => {
             vaultUI.classList.add('active');
         }, 50);
-    }, 300);
+    }, 400);
 }
 
 function closeVault() {
@@ -178,30 +220,44 @@ function closeVault() {
     setTimeout(() => {
         vaultUI.classList.add('hidden');
         calculatorUI.classList.remove('hidden');
-        calculatorUI.style.transform = "rotateY(0deg) scale(1)";
-        calculatorUI.style.opacity = "1";
+        setTimeout(() => {
+            calculatorUI.style.transform = "scale(1) translateY(0)";
+            calculatorUI.style.opacity = "1";
+        }, 50);
     }, 500);
 }
 
-closeVaultBtn.addEventListener('click', closeVault);
+lockVaultBtn.addEventListener('click', closeVault);
+
+// Notification Helper
+function showNotification(message) {
+    const notification = document.getElementById('notification');
+    notification.innerText = message;
+    notification.classList.remove('hidden');
+    setTimeout(() => {
+        notification.classList.add('hidden');
+    }, 3000);
+}
 
 // Keyboard support
 document.addEventListener('keydown', e => {
-    if ((e.key >= 0 && e.key <= 9) || e.key === '.') {
-        calculator.appendNumber(e.key);
-    } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
-        calculator.chooseOperation(e.key);
-    } else if (e.key === 'Enter' || e.key === '=') {
-        if (calculator.currentOperand === calculator.secretCode) {
-            openVault();
+    if (setupModal.classList.contains('hidden')) {
+        if ((e.key >= 0 && e.key <= 9) || e.key === '.') {
+            calculator.appendNumber(e.key);
+        } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+            calculator.chooseOperation(e.key);
+        } else if (e.key === 'Enter' || e.key === '=') {
+            if (calculator.currentOperand === calculator.secretCode && calculator.secretCode !== null) {
+                openVault();
+                calculator.clear();
+            } else {
+                calculator.compute();
+            }
+        } else if (e.key === 'Backspace') {
+            calculator.delete();
+        } else if (e.key === 'Escape') {
             calculator.clear();
-        } else {
-            calculator.compute();
         }
-    } else if (e.key === 'Backspace') {
-        calculator.delete();
-    } else if (e.key === 'Escape') {
-        calculator.clear();
+        calculator.updateDisplay();
     }
-    calculator.updateDisplay();
 });
