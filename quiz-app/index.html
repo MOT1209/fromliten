@@ -23,12 +23,28 @@
                 <i class="fas fa-brain-circuit"></i>
             </div>
             <h1>تطبيق اسألني</h1>
-            <p>اختبر معلوماتك في عالم البرمجة والتقنية مع تحدي الأسئلة الذكي.</p>
-            <div class="quiz-info">
-                <span><i class="fas fa-list-ol"></i> 10 أسئلة</span>
-                <span><i class="fas fa-clock"></i> 15 ثانية لكل سؤال</span>
+            <p>اختر التصنيف الذي تود اختبار معلوماتك فيه:</p>
+
+            <div class="category-grid">
+                <div class="category-card" onclick="selectCategory('programming')">
+                    <i class="fas fa-code"></i>
+                    <h3>أسئلة البرمجة</h3>
+                    <span>+1000 سؤال</span>
+                </div>
+                <div class="category-card" onclick="selectCategory('general')">
+                    <i class="fas fa-earth-americas"></i>
+                    <h3>ثقافة عامة</h3>
+                    <span>+1000 سؤال</span>
+                </div>
             </div>
-            <button id="start-btn" class="btn btn-primary">ابدأ التحدي الآن</button>
+
+            <div class="quiz-info" style="margin-top: 20px;">
+                <span><i class="fas fa-layer-group"></i> 100+ مستوى</span>
+                <span><i class="fas fa-list-ol"></i> 10 أسئلة/مستوى</span>
+                <span><i class="fas fa-trophy"></i> تحدي النخبة</span>
+            </div>
+            <p style="font-size: 0.8rem; margin-top: 20px; opacity: 0.6;">* يجب الحصول على 7/10 للانتقال للمستوى التالي
+            </p>
         </div>
 
         <!-- Quiz Screen -->
