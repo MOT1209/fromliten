@@ -1334,6 +1334,7 @@ textarea:focus {
 /* Custom Google Translate Styling inside settings */
 #google_translate_element {
     min-height: 40px;
+    display: block !important;
 }
 
 .goog-te-gadget-simple {
@@ -1342,14 +1343,25 @@ textarea:focus {
     padding: 8px 12px !important;
     border-radius: 8px !important;
     font-family: var(--font-primary) !important;
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    justify-content: space-between !important;
 }
 
 .goog-te-gadget-simple .goog-te-menu-value {
     color: var(--text-primary) !important;
+    font-size: 14px !important;
 }
 
 .goog-te-gadget-icon {
     display: none !important;
+}
+
+/* Force Google Translate Dropdown to top */
+.goog-te-menu-frame {
+    z-index: 99999999 !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
 }
 
 .goog-te-banner-frame.skiptranslate {

@@ -333,7 +333,10 @@
 
         <div class="setting-item">
             <label><i class="fas fa-globe"></i> ترجمة الموقع (كل اللغات)</label>
-            <div id="google_translate_element"></div>
+            <div id="google_translate_element" style="min-height: 40px;">
+                <p style="font-size: 11px; opacity: 0.6; margin-top: 5px;">جاري تحميل نظام الترجمة... إذا لم يظهر، يرجى
+                    التأكد من اتصال الانترنت.</p>
+            </div>
         </div>
 
         <div class="setting-item">
@@ -364,14 +367,19 @@
     <!-- Google Translate Script -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'en',
-                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-            }, 'google_translate_element');
+            try {
+                new google.translate.TranslateElement({
+                    pageLanguage: 'en',
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                    autoDisplay: false
+                }, 'google_translate_element');
+            } catch (err) {
+                console.error("Google Translate Init Error:", err);
+            }
         }
     </script>
     <script type="text/javascript"
-        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+        src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <!-- Custom Script -->
     <script src="js/script.js"></script>
