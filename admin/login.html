@@ -124,7 +124,9 @@
             // User requested email: zwnt45602@gmail.com
             // Keeping default 'admin' as fallback or remove if strictly restricted, 
             // but for now allowing both or just the email.
-            if ((user === 'admin' || user === 'zwnt45602@gmail.com') && pass === 'admin123') {
+            const storedPass = localStorage.getItem('adminPassword') || 'Rashid2010';
+
+            if ((user === 'admin' || user === 'zwnt45602@gmail.com') && pass === storedPass) {
                 localStorage.setItem('isAdmin', 'true');
                 window.location.href = 'dashboard.html';
             } else {

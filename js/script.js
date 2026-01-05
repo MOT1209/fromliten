@@ -132,14 +132,21 @@ document.addEventListener('DOMContentLoaded', () => {
     */
     const savedContent = JSON.parse(localStorage.getItem('siteContent') || '{}');
     if (savedContent.title) {
-        // Specifically targeting the H2 in hero which holds the role title
         const heroTitle = document.querySelector('#hero h2');
         if (heroTitle) heroTitle.innerText = savedContent.title;
     }
     if (savedContent.about) {
-        // Targeting the paragraph in about section
         const aboutText = document.querySelector('.about-text p');
         if (aboutText) aboutText.innerText = savedContent.about;
+    }
+
+    const savedSettings = JSON.parse(localStorage.getItem('siteSettings') || '{}');
+    const contactSpans = document.querySelectorAll('.contact-info span');
+    if (savedSettings.email && contactSpans[0]) {
+        contactSpans[0].innerText = savedSettings.email;
+    }
+    if (savedSettings.location && contactSpans[1]) {
+        contactSpans[1].innerText = savedSettings.location;
     }
 
     /* 

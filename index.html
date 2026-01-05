@@ -38,6 +38,7 @@
             </ul>
 
             <div class="nav-controls">
+                <div id="google_translate_element" style="margin-right: 15px;"></div>
                 <button id="theme-toggle" aria-label="Toggle Theme">
                     <i class="fas fa-sun"></i>
                 </button>
@@ -279,11 +280,29 @@
                     <h3>Let's Connect</h3>
                     <p>I'm always open to discussing new projects, creative ideas or opportunities to be part of your
                         visions.</p>
+
+                    <div style="margin: 25px 0;">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                            <i class="fas fa-envelope" style="color: var(--accent); font-size: 1.2rem;"></i>
+                            <span>zwnt45602@gmail.com</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <i class="fas fa-map-marker-alt" style="color: var(--accent); font-size: 1.2rem;"></i>
+                            <span>Germany</span>
+                        </div>
+                    </div>
+
                     <div class="social-links">
-                        <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
-                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="https://github.com/" target="_blank" aria-label="GitHub"><i
+                                class="fab fa-github"></i></a>
+                        <a href="https://linkedin.com/" target="_blank" aria-label="LinkedIn"><i
+                                class="fab fa-linkedin"></i></a>
+                        <a href="https://youtube.com/" target="_blank" aria-label="YouTube"><i
+                                class="fab fa-youtube"></i></a>
+                        <a href="https://facebook.com/" target="_blank" aria-label="Facebook"><i
+                                class="fab fa-facebook"></i></a>
+                        <a href="https://t.me/" target="_blank" aria-label="Telegram"><i
+                                class="fab fa-telegram"></i></a>
                     </div>
                 </div>
                 <form class="contact-form reveal">
@@ -312,6 +331,19 @@
             </a>
         </div>
     </footer>
+
+    <!-- Google Translate Script -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'ar,en,de,fr,es,it,tr,ru,zh-CN,ja', // Can specify or leave empty for all
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript"
+        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <!-- Custom Script -->
     <script src="js/script.js"></script>
