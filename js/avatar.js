@@ -5,10 +5,10 @@
 class RobotAvatar {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
-        
+
         // Scene setup
         this.scene = new THREE.Scene();
-        
+
         // Camera setup
         this.camera = new THREE.PerspectiveCamera(50, this.container.clientWidth / this.container.clientHeight, 0.1, 1000);
         this.camera.position.z = 5;
@@ -38,14 +38,14 @@ class RobotAvatar {
         // Animation state
         this.clock = new THREE.Clock();
         this.isTalking = false;
-        
+
         // Mouse interaction
         this.mouseX = 0;
         this.mouseY = 0;
-        
+
         // Speech Bubble
         this.createSpeechBubble();
-        
+
         // Events
         document.addEventListener('mousemove', (e) => this.onMouseMove(e));
         this.container.addEventListener('click', () => this.introSpeech());
@@ -53,9 +53,9 @@ class RobotAvatar {
 
         // Start Loop
         this.animate();
-        
+
         // Initial Greeting
-        setTimeout(() => this.showBubble("مرحباً! أنا رشيد، مساعدك الذكي. اضغط علي للتحدث!", 4000), 1000);
+        setTimeout(() => this.showBubble("مرحباً! أنا راشد، مساعدك الذكي. اضغط علي للتحدث!", 4000), 1000);
     }
 
     buildRobot() {
@@ -96,27 +96,27 @@ class RobotAvatar {
         this.antBall = new THREE.Mesh(antBallGeo, new THREE.MeshBasicMaterial({ color: 0xff3333 })); // Red blinking light
         this.antBall.position.set(0, 1.0, 0);
         this.head.add(this.antBall);
-        
+
         // Floating Body (Just a simple shape below head)
         const bodyGeo = new THREE.ConeGeometry(0.6, 1, 4);
         this.body = new THREE.Mesh(bodyGeo, bodyMat);
         this.body.rotation.x = Math.PI; // upside down pyramid style
         this.body.position.y = -1.2;
         this.robot.add(this.body);
-        
+
         // Neck
         const neckGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.5);
         const neck = new THREE.Mesh(neckGeo, darkMat);
         neck.position.y = -0.6;
         this.robot.add(neck);
-        
+
         // Headphones / Ears
         const earGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.2);
         earGeo.rotateZ(Math.PI / 2);
         const leftEar = new THREE.Mesh(earGeo, darkMat);
         leftEar.position.set(-0.65, 0, 0);
         this.head.add(leftEar);
-        
+
         const rightEar = new THREE.Mesh(earGeo, darkMat);
         rightEar.position.set(0.65, 0, 0);
         this.head.add(rightEar);
@@ -133,7 +133,7 @@ class RobotAvatar {
         this.bubble.innerText = text;
         this.bubble.style.display = 'block';
         this.bubble.classList.add('pop-in');
-        
+
         if (this.bubbleTimeout) clearTimeout(this.bubbleTimeout);
         this.bubbleTimeout = setTimeout(() => {
             this.bubble.style.display = 'none';
@@ -158,39 +158,44 @@ class RobotAvatar {
         this.isTalking = true;
 
         const messages = [
-            "أهلاً بك في موقع رشيد!",
+            "أهلاً بك في موقع راشد!",
             "أنا هنا لمساعدتك في استكشاف الموقع.",
             "يمكنك رؤية المشاريع في الأسفل، أو التواصل معنا عبر النموذج.",
             "استمتع بوقتك!"
         ];
-        
+
         let i = 0;
-        
+
         // Visual talking effect
         this.antBall.material.color.setHex(0x00ff00); // Turn green
-        
+
         const speakNext = () => {
             if (i >= messages.length) {
                 this.isTalking = false;
                 this.antBall.material.color.setHex(0xff3333); // Back to red
                 return;
             }
-            
+
             const text = messages[i];
             this.showBubble(text, 2500);
-            
+
             // TTS
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'ar-SA'; // Arabic
-                 // Try to find a good voice
-                 const voices = window.speechSynthesis.getVoices();
-                 // Optionally pick an Arabic voice if available
-                 // (Browsers handle default voice selection usually well enough)
-                 
+                utterance.rate = 0.85; // Slightly slower for clarity
+                utterance.pitch = 1.0;
+
+                // Improve voice selection for Arabic
+                const voices = window.speechSynthesis.getVoices();
+                const arabicVoice = voices.find(v => v.lang.includes('ar') || v.name.includes('Arabic') || v.name.includes('Maged'));
+                if (arabicVoice) {
+                    utterance.voice = arabicVoice;
+                }
+
                 utterance.onend = () => {
-                   i++;
-                   setTimeout(speakNext, 500);
+                    i++;
+                    setTimeout(speakNext, 500);
                 };
                 window.speechSynthesis.speak(utterance);
             } else {
@@ -218,13 +223,13 @@ class RobotAvatar {
 
         // Blinking light pulse
         if (!this.isTalking) {
-             const pulse = (Math.sin(time * 5) + 1) / 2; // 0 to 1
-             this.antBall.material.emissiveIntensity = pulse;
+            const pulse = (Math.sin(time * 5) + 1) / 2; // 0 to 1
+            this.antBall.material.emissiveIntensity = pulse;
         }
 
         // Talking animation (scale Y of head slightly?)
         if (this.isTalking) {
-             this.head.scale.y = 1 + Math.sin(time * 20) * 0.02;
+            this.head.scale.y = 1 + Math.sin(time * 20) * 0.02;
         } else {
             this.head.scale.y = 1;
         }
@@ -241,7 +246,7 @@ window.addEventListener('load', () => {
         div.id = 'avatar-container';
         document.body.appendChild(div);
     }
-    
+
     // Init Script
     const avatar = new RobotAvatar('avatar-container');
 });
