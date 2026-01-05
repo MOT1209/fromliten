@@ -47,10 +47,13 @@ class RobotAvatar {
         this.buildChatUI();
         this.isChatOpen = false;
 
+        // Speech Recognition Setup
+        this.setupSpeechRecognition();
+
         // Events
         document.addEventListener('mousemove', (e) => this.onMouseMove(e));
         this.renderer.domElement.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent ensuring bubble closing immediately
+            e.stopPropagation();
             this.toggleChat();
         });
         window.addEventListener('resize', () => this.onResize());
@@ -59,7 +62,47 @@ class RobotAvatar {
         this.animate();
 
         // Initial Greeting
-        setTimeout(() => this.showBubble("مرحباً! أنا راشد. اضغط هنا للتحدث معي!", 4000), 1000);
+        setTimeout(() => this.showBubble("مرحباً! اضغط على الميكروفون للتحدث معي صوتياً.", 4000), 1000);
+    }
+
+    setupSpeechRecognition() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            this.recognition = new SpeechRecognition();
+            this.recognition.lang = 'ar-SA';
+            this.recognition.continuous = false;
+            this.recognition.interimResults = false;
+
+            this.recognition.onstart = () => {
+                this.isListening = true;
+                this.updateMicVisuals(true);
+            };
+
+            this.recognition.onend = () => {
+                this.isListening = false;
+                this.updateMicVisuals(false);
+            };
+
+            this.recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                this.addMessage(transcript, 'user');
+                this.handleVoiceCommand(transcript);
+            };
+        } else {
+            console.warn("Speech Recognition not supported in this browser.");
+            this.recognition = null;
+        }
+    }
+
+    updateMicVisuals(isListening) {
+        const micBtn = this.chatWindow.querySelector('#voice-btn');
+        if (isListening) {
+            micBtn.style.color = '#ef4444'; // Red when recording
+            micBtn.classList.add('pulse-anim');
+        } else {
+            micBtn.style.color = 'var(--accent)';
+            micBtn.classList.remove('pulse-anim');
+        }
     }
 
     buildRobot() {
@@ -131,15 +174,16 @@ class RobotAvatar {
         this.chatWindow.className = 'avatar-chat-window';
         this.chatWindow.innerHTML = `
             <div class="chat-header">
-                <span>المساعد الذكي - راشد</span>
+                <span>المساعد الصوتي - راشد</span>
                 <span class="chat-close">&times;</span>
             </div>
             <div class="chat-messages" id="chat-messages">
-                <div class="message bot">مرحباً! أنا هنا للإجابة على جميع اسئلتك حول الموقع ومشاريعي. تفضل بالسؤال!</div>
+                <div class="message bot">أهلاً! اضغط على زر الميكروفون واسألني ما تريد بصوتك.</div>
             </div>
-            <div class="chat-input-area">
-                <input type="text" id="chat-input" placeholder="اكتب رسالتك هنا...">
-                <button id="chat-send"><i class="fas fa-paper-plane"></i></button>
+            <div class="chat-input-area" style="justify-content: center;">
+                <button id="voice-btn" style="font-size: 1.5rem; padding: 10px; border-radius: 50%; background: var(--bg-alt); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                    <i class="fas fa-microphone"></i>
+                </button>
             </div>
         `;
         this.container.appendChild(this.chatWindow);
@@ -156,12 +200,14 @@ class RobotAvatar {
             this.toggleChat();
         });
 
-        const input = this.chatWindow.querySelector('#chat-input');
-        const sendBtn = this.chatWindow.querySelector('#chat-send');
-
-        sendBtn.addEventListener('click', () => this.handleSendMessage());
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.handleSendMessage();
+        const micBtn = this.chatWindow.querySelector('#voice-btn');
+        micBtn.addEventListener('click', () => {
+            if (this.recognition) {
+                if (this.isListening) this.recognition.stop();
+                else this.recognition.start();
+            } else {
+                alert("عذراً، متصفحك لا يدعم الأوامر الصوتية.");
+            }
         });
     }
 
@@ -171,12 +217,6 @@ class RobotAvatar {
 
         if (this.isChatOpen) {
             this.bubble.style.display = 'none'; // hide bubble if chat opens
-            // Focus input
-            setTimeout(() => {
-                this.chatWindow.querySelector('#chat-input').focus();
-            }, 100);
-
-            // Allow audio context to resume/start
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel(); // Reset any pending
             }
@@ -197,15 +237,7 @@ class RobotAvatar {
         }, duration);
     }
 
-    handleSendMessage() {
-        const input = this.chatWindow.querySelector('#chat-input');
-        const text = input.value.trim();
-        if (!text) return;
-
-        // Add User Message
-        this.addMessage(text, 'user');
-        input.value = '';
-
+    handleVoiceCommand(text) {
         // Generate Response
         setTimeout(() => {
             const response = this.getBotResponse(text);
@@ -227,23 +259,23 @@ class RobotAvatar {
         const lowerInput = input.toLowerCase();
 
         // 1. Greetings
-        if (lowerInput.includes('مرحبا') || lowerInput.includes('هلا') || lowerInput.includes('سلام') || lowerInput.includes('hi') || lowerInput.includes('hello')) {
-            return "يا هلا! كيف أقدر أساعدك اليوم؟";
+        if (lowerInput.includes('مرحبا') || lowerInput.includes('هلا') || lowerInput.includes('سلام') || lowerInput.includes('hi')) {
+            return "يا هلا! آمرني، وش تبي تعرف؟";
         }
 
         // 2. Identity
         if (lowerInput.includes('من انت') || lowerInput.includes('اسمك') || lowerInput.includes('مين انت')) {
-            return "أنا راشد، المساعد الذكي لهذا الموقع. مبرمج خصيصاً لمساعدتك!";
+            return "أنا راشد، مساعدك الذكي. أسمعك وجاهز أجاوبك!";
         }
 
         // 3. Website Info / Projects
-        if (lowerInput.includes('موقع') || lowerInput.includes('مشروع') || lowerInput.includes('اعمال') || lowerInput.includes('ماذا يوجد')) {
-            return "هذا الموقع هو معرض لأعمالي البرمجية. يحتوي على مشاريع مثل: لعبة المزرعة 3D، وتطبيق القرآن الكريم، والخزنة الذكية. تصفح قسم 'Projects' لرؤيتها!";
+        if (lowerInput.includes('موقع') || lowerInput.includes('مشروع') || lowerInput.includes('اعمال')) {
+            return "هذا الموقع يستعرض أعمالي في البرمجة وتصميم الألعاب، مثل لعبة المزرعة ومشروع القرآن الكريم.";
         }
 
         // 4. Contact
-        if (lowerInput.includes('تواصل') || lowerInput.includes('رقم') || lowerInput.includes('اتصل') || lowerInput.includes('ايميل')) {
-            return "يمكنك التواصل معي عبر النموذج في أسفل الصفحة 'Contact'، أو عبر حساباتي الاجتماعية الموجودة هناك.";
+        if (lowerInput.includes('تواصل') || lowerInput.includes('رقم') || lowerInput.includes('اتصل')) {
+            return "تقدر تتواصل معي عن طريق فورم 'Contact' تحت، أو حساباتي في السوشيال ميديا.";
         }
 
         // 5. Skills
@@ -257,7 +289,7 @@ class RobotAvatar {
         }
 
         // Default
-        return "سؤال جيد! أنا عبارة عن ذكاء اصطناعي محدود حالياً، لكني هنا لأقول لك أن الموقع مصمم بكل حب وإتقان. هل لديك سؤال عن المشاريع؟";
+        return "ما فهمت عليك بالضبط، بس شكل الموضوع مهم! تقدر تعيد السؤال بصيغة ثانية؟";
     }
 
     speak(text) {
@@ -266,7 +298,6 @@ class RobotAvatar {
         this.antBall.material.color.setHex(0x00ff00);
 
         if ('speechSynthesis' in window) {
-            // Cancel previous
             window.speechSynthesis.cancel();
 
             const utterance = new SpeechSynthesisUtterance(text);
@@ -274,7 +305,6 @@ class RobotAvatar {
             utterance.rate = 0.9;
             utterance.pitch = 1.0;
 
-            // Voice selection
             const voices = window.speechSynthesis.getVoices();
             const arabicVoice = voices.find(v => v.lang.includes('ar') || v.name.includes('Arabic'));
             if (arabicVoice) utterance.voice = arabicVoice;
@@ -286,11 +316,10 @@ class RobotAvatar {
 
             window.speechSynthesis.speak(utterance);
         } else {
-            // Fallback if no TTS
             setTimeout(() => {
                 this.isTalking = false;
                 this.antBall.material.color.setHex(0xff3333);
-            }, 2000);
+            }, 3000);
         }
     }
 
