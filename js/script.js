@@ -159,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsOverlay = document.getElementById('settings-overlay');
     const closeSettings = document.getElementById('close-settings');
     const voiceToggle = document.getElementById('voice-toggle');
+    const langOptions = document.querySelectorAll('.lang-option');
 
     function openSettings() {
         settingsModal.classList.add('active');
@@ -173,6 +174,54 @@ document.addEventListener('DOMContentLoaded', () => {
     if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
     if (closeSettings) closeSettings.addEventListener('click', closeSettingsPanel);
     if (settingsOverlay) settingsOverlay.addEventListener('click', closeSettingsPanel);
+
+    // Custom Language Picker Logic
+    const langPicker = document.querySelector('.language-picker-container');
+    langOptions.forEach(opt => {
+        opt.addEventListener('click', () => {
+            const langCode = opt.getAttribute('data-lang');
+
+            // Trigger hidden Google Translate
+            const googleCombo = document.querySelector('.goog-te-combo');
+            if (googleCombo) {
+                googleCombo.value = langCode;
+                googleCombo.dispatchEvent(new Event('change'));
+
+                // Active Class Update
+                langOptions.forEach(l => l.classList.remove('active'));
+                opt.classList.add('active');
+
+                // Auto close panel after selection
+                setTimeout(closeSettingsPanel, 500);
+            } else {
+                alert("Translation system is still loading. Please try again in a moment.");
+            }
+        });
+    });
+
+    // 3D Wheel Scroll Effect
+    if (langPicker) {
+        langPicker.addEventListener('scroll', () => {
+            const containerRect = langPicker.getBoundingClientRect();
+            const center = containerRect.top + containerRect.height / 2;
+
+            langOptions.forEach(opt => {
+                const optRect = opt.getBoundingClientRect();
+                const optCenter = optRect.top + optRect.height / 2;
+                const dist = Math.abs(center - optCenter);
+
+                // Magnification based on distance from center
+                const scale = Math.max(0.7, 1.25 - (dist / 120));
+                const opacity = Math.max(0.4, 1 - (dist / 180));
+
+                opt.style.transform = `scale(${scale})`;
+                opt.style.opacity = opacity;
+            });
+        });
+
+        // Initial trigger
+        setTimeout(() => langPicker.dispatchEvent(new Event('scroll')), 500);
+    }
 
     // Voice Toggle Preference
     if (voiceToggle) {
