@@ -279,47 +279,67 @@ class RobotAvatar {
     getBotResponse(input) {
         const lowerInput = input.trim().toLowerCase();
 
-        // 1. Greetings & Dialects (Gulf, Egyptian, Levantine, etc.)
-        const greetings = ['مرحبا', 'هلا', 'سلام', 'هاي', 'ألو', 'صباح الخير', 'مساء الخير', 'ازيك', 'شلونك', 'كيفك', 'عامل ايه'];
+        // 1. Greetings & Dialects (Gulf, Egyptian, Levantine, Iraqi, Deiri)
+        const greetings = [
+            'مرحبا', 'هلا', 'سلام', 'هاي', 'ألو', 'صباح الخير', 'مساء الخير', 'ازيك', 'شلونك', 'كيفك', 'عامل ايه',
+            'شكو ماكو', 'الله بالخير', 'هلو', 'هلوات', 'شخبارك', 'اشلونك', 'يا خال', 'يا ولد', 'يا عيني',
+            'يا ديري', 'يا شقردي', 'عاشت ايدك', 'يا ولد الدير'
+        ];
         if (greetings.some(w => lowerInput.includes(w))) {
-            return "يا هلا وغلا! أنا راشد، مساعدك الذكي. كيف أقدر أخدمك اليوم؟";
+            return "يا هلا بيك يا خال! نورت الموقع. آني راشد، مساعدك الذكي من أهل الكرم. شكو ماكو؟ شلون أقدر أخدمك اليوم؟";
         }
 
-        // 2. Identity (Dialects: مين، شو، شنو)
-        if (lowerInput.includes('انت مين') || lowerInput.includes('من انت') || lowerInput.includes('مين انت') || lowerInput.includes('عرفني بنفسك') || lowerInput.includes('شو اسمك') || lowerInput.includes('شنو اسمك')) {
-            return "أنا راشد، روبوت ذكي طورني مصمم هذا الموقع عشان أساعدك وأجاوب على أسئلتك. أنا هنا لخدمتك!";
+        // 2. Identity (Dialects: مين، شو، شنو، انت منو)
+        // Iraqi: انت منو - Deiri: منو انت، من هوا انت
+        if (lowerInput.includes('انت مين') || lowerInput.includes('من انت') || lowerInput.includes('مين انت') || lowerInput.includes('عرفني بنفسك') ||
+            lowerInput.includes('شو اسمك') || lowerInput.includes('شنو اسمك') || lowerInput.includes('انت منو') || lowerInput.includes('منو انت') || lowerInput.includes('من هوا انت')) {
+            return "آني راشد، أخوك المبرمج الذكي. طورني صاحب الموقع حتى أكون وياكم وأجاوب على كل استفساراتكم بلهجتكم الطيبة. آني بخدمتكم يا أهل الدير والعراق وكل الوطن العربي!";
         }
 
-        // 3. Website Info / Projects (Dialects: شو عندك، وش تسوي، وريني، مشاريع)
-        if (lowerInput.includes('موقع') || lowerInput.includes('مشروع') || lowerInput.includes('أعمال') || lowerInput.includes('اعمال') || lowerInput.includes('وش عندك') || lowerInput.includes('ايش عندك') || lowerInput.includes('شو في') || lowerInput.includes('لعبه') || lowerInput.includes('لعبة')) {
-            return "الموقع هذا هو المعرض الشخصي لمشاريعي. فيه ثلاث مشاريع رئيسية: لعبة المزرعة ثلاثية الأبعاد الرهيبة، الخزنة الذكية، وتطبيق القرآن الكريم. تبي تفاصيل عن أي وحدة؟";
+        if (lowerInput.includes('ديري') || lowerInput.includes('دير الزور') || lowerInput.includes('اهل الدير')) {
+            return "يا حي الله بيك وبأهل الدير! أهل الكرم والنخوة ووادي الفرات. آني أخوكم راشد، وبخدمتكم دائماً يا ولد عمي.";
+        }
+        if (lowerInput.includes('عراقي') || lowerInput.includes('العراق') || lowerInput.includes('بغداد')) {
+            return "يا هلا بيك وبالعراق وأهلها الغالين! أهل الغيرة والشهامة. نورت الموقع، شلون أقدر أساعدك يا ورد؟";
         }
 
-        // 4. Contact (Dialects: كيف اكلمك، وينك، رقمك)
-        if (lowerInput.includes('تواصل') || lowerInput.includes('رقم') || lowerInput.includes('اتصل') || lowerInput.includes('اكلمك') || lowerInput.includes('وين مكانك')) {
-            return "أسهل طريقة تتواصل معي هي تعبي النموذج الموجود في آخر الصفحة تحت عنوان 'Contact'، أو تابعني على حساباتي الموجودة هناك.";
+        // 3. Website Info / Projects (Dialects: شكو ماكو بالموقع، شنو عندك، شسويت)
+        // Iraqi: شكو ماكو، شنو مشاريعك، شمسوي
+        if (lowerInput.includes('موقع') || lowerInput.includes('مشروع') || lowerInput.includes('أعمال') || lowerInput.includes('اعمال') ||
+            lowerInput.includes('وش عندك') || lowerInput.includes('ايش عندك') || lowerInput.includes('شو في') || lowerInput.includes('لعبه') ||
+            lowerInput.includes('لعبة') || lowerInput.includes('شنو عندك') || lowerInput.includes('شكو ماكو') || lowerInput.includes('شمسوي')) {
+            return "بالموقع هذا اكو شغلات حيل حلوة! اكو ثلاث مشاريع رئيسية: لعبة المزرعة ثلاثية الأبعاد، الخزنة الذكية، وتطبيق القرآن الكريم. تريد أشرح لك عن وحدة منهن يا الطيب؟";
         }
 
-        // 5. Skills (Dialects: وش تعرف، شنو لغاتك)
-        if (lowerInput.includes('مهارات') || lowerInput.includes('لغات') || lowerInput.includes('تعرف تبرمج') || lowerInput.includes('شاطر في')) {
-            return "أنا مبرمج أعشق التحدي! عندي خبرة قوية في HTML, CSS, JavaScript, و Python. وحالياً مركز بقوة على تطوير الألعاب والـ 3D باستخدام Three.js.";
+        // 4. Contact (Dialects: شلون اكلمك، وينك، رقمك، وين صاير)
+        // Iraqi: شلون احاجيك، وين الكاك
+        if (lowerInput.includes('تواصل') || lowerInput.includes('رقم') || lowerInput.includes('اتصل') || lowerInput.includes('اكلمك') ||
+            lowerInput.includes('وين مكانك') || lowerInput.includes('شلون اكلمك') || lowerInput.includes('شلون احاجيك') || lowerInput.includes('وين صاير') || lowerInput.includes('وين الكاك')) {
+            return "تقدر تحاجيني وتتواصل وية صاحب الموقع عن طريق النموذج الموجود بآخر الصفحة، أو تابعنا على حسابات التواصل الاجتماعي. عيوني لك!";
+        }
+
+        // 5. Skills (Dialects: شتعرف، شنو لغاتك، شتشتغل)
+        // Iraqi: شتعرف، بشنو تشتغل
+        if (lowerInput.includes('مهارات') || lowerInput.includes('لغات') || lowerInput.includes('تعرف تبرمج') || lowerInput.includes('شاطر في') ||
+            lowerInput.includes('شتعرف') || lowerInput.includes('شنو شغلك') || lowerInput.includes('شتشتغل')) {
+            return "آني مبرمج شاطر وأحب التحدي! عندي خبرة قوية ببرمجة المواقع والذكاء الاصطناعي. وهسة مركز بقوة على الألعاب والـ 3D. يعني شتطلب آني حاضر!";
         }
 
         // 6. Admin 
         if (lowerInput.includes('ادمن') || lowerInput.includes('مطور') || lowerInput.includes('دخول') || lowerInput.includes('admin')) {
-            return "أهلاً بالمدير! مكان الدخول السري موجود في أسفل الصفحة تماماً، دور على كلمة 'Admin Login'.";
+            return "أطلك يا مدير! باب الدخول السري للأدمن موجود بأسفل الصفحة، دور على كلمة 'Admin Login' وتفضل بالدخول.";
         }
 
         // 7. General Talk (Dialects)
-        if (lowerInput.includes('شكرا') || lowerInput.includes('يعطيك العافية') || lowerInput.includes('تسلم')) {
-            return "العفو! ولو، أنا بالخدمة دائماً.";
+        if (lowerInput.includes('شكرا') || lowerInput.includes('يعطيك العافية') || lowerInput.includes('تسلم') || lowerInput.includes('عاشت ايدك') || lowerInput.includes('رحم الله والديك') || lowerInput.includes('ممنون')) {
+            return "تدلل يا ورد! ولو، إحنا بالخدمة دائماً. رحم الله والديك هماتين.";
         }
-        if (lowerInput.includes('احبك') || lowerInput.includes('حب')) {
-            return "يا حبيبي! وأنا بعد أحب أساعدك.";
+        if (lowerInput.includes('احبك') || lowerInput.includes('حب') || lowerInput.includes('اموت عليك') || lowerInput.includes('اعزك')) {
+            return "فدوة لقلبك! وآني هم أعزك وأحب أساعدك. نورتنا والله.";
         }
 
         // Default Fallback
-        return "آسف، ما فهمت عليك زين. صوتي يمكن يقطع أو لهجتك جديدة علي. ممكن تعيد السؤال؟";
+        return "العفو، ما لقطت كلامك زين يا الطيب. يمكن النت يقطع أو لهجتك شوية صعبة علي. بلا زحمة عليك تعيد السؤال بروح والديك؟";
     }
 
     speak(text) {
