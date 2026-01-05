@@ -343,6 +343,9 @@ class RobotAvatar {
     }
 
     speak(text) {
+        const voicePref = localStorage.getItem('rashidVoice');
+        if (voicePref === 'off') return;
+
         // Visual indicator
         this.isTalking = true;
         this.antBall.material.color.setHex(0x00ff00);

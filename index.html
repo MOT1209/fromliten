@@ -38,7 +38,9 @@
             </ul>
 
             <div class="nav-controls">
-                <div id="google_translate_element" style="margin-right: 15px;"></div>
+                <button id="settings-btn" aria-label="Site Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
                 <button id="theme-toggle" aria-label="Toggle Theme">
                     <i class="fas fa-sun"></i>
                 </button>
@@ -320,6 +322,33 @@
             </div>
         </div>
     </section>
+
+    <!-- Settings Modal -->
+    <div class="settings-overlay" id="settings-overlay"></div>
+    <div class="settings-modal" id="settings-modal">
+        <div class="settings-header">
+            <h3>Site Settings</h3>
+            <span class="close-settings" id="close-settings">&times;</span>
+        </div>
+
+        <div class="setting-item">
+            <label><i class="fas fa-language"></i> Select Language</label>
+            <div id="google_translate_element"></div>
+        </div>
+
+        <div class="setting-item">
+            <label><i class="fas fa-robot"></i> Rashid's Voice</label>
+            <div
+                style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-alt); padding: 10px; border-radius: 8px;">
+                <span>Voice Response</span>
+                <input type="checkbox" id="voice-toggle" checked style="width: auto;">
+            </div>
+        </div>
+
+        <div class="settings-footer">
+            <p>Rashid Portfolio v2.0</p>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">

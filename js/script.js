@@ -151,6 +151,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* 
     =========================================
+       SETTINGS MODAL LOGIC
+    =========================================
+    */
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsModal = document.getElementById('settings-modal');
+    const settingsOverlay = document.getElementById('settings-overlay');
+    const closeSettings = document.getElementById('close-settings');
+    const voiceToggle = document.getElementById('voice-toggle');
+
+    function openSettings() {
+        settingsModal.classList.add('active');
+        settingsOverlay.classList.add('active');
+    }
+
+    function closeSettingsPanel() {
+        settingsModal.classList.remove('active');
+        settingsOverlay.classList.remove('active');
+    }
+
+    if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
+    if (closeSettings) closeSettings.addEventListener('click', closeSettingsPanel);
+    if (settingsOverlay) settingsOverlay.addEventListener('click', closeSettingsPanel);
+
+    // Voice Toggle Preference
+    if (voiceToggle) {
+        const voicePref = localStorage.getItem('rashidVoice');
+        voiceToggle.checked = voicePref !== 'off'; // default on
+
+        voiceToggle.addEventListener('change', () => {
+            localStorage.setItem('rashidVoice', voiceToggle.checked ? 'on' : 'off');
+        });
+    }
+
+    /* 
+    =========================================
        CONTACT FORM HANDLING
     =========================================
     */
