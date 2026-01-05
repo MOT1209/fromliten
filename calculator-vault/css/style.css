@@ -1,20 +1,18 @@
-/* ==================== CSS Variables ==================== */
+/* ==================== Design System ==================== */
 :root {
-    --bg-main: #0a0e14;
-    --calc-bg: rgba(20, 25, 35, 0.8);
-    --display-bg: #161b22;
-    --text-primary: #ffffff;
-    --text-secondary: #8b949e;
-    --accent-color: #00d2ff;
-    --operator-color: #ff9f0a;
-    --equals-color: #32d74b;
-    --action-color: #ff453a;
-    --btn-bg: #21262d;
-    --btn-hover: #30363d;
-    --glass-border: rgba(255, 255, 255, 0.1);
+    --bg-dark: #05070a;
+    --card-bg: #0f172a;
+    --sidebar-bg: #0a0f1e;
+    --accent: #00d2ff;
+    --accent-glow: rgba(0, 210, 255, 0.4);
+    --text-main: #f8fafc;
+    --text-dim: #94a3b8;
+    --danger: #ef4444;
+    --success: #22c55e;
+    --glass: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.08);
 }
 
-/* ==================== Base Styles ==================== */
 * {
     margin: 0;
     padding: 0;
@@ -23,459 +21,344 @@
 }
 
 body {
-    background: var(--bg-main);
-    background-image:
-        radial-gradient(circle at 20% 30%, rgba(0, 210, 255, 0.05) 0%, transparent 40%),
-        radial-gradient(circle at 80% 70%, rgba(50, 215, 75, 0.05) 0%, transparent 40%);
+    background: var(--bg-dark);
+    color: var(--text-main);
     height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--text-primary);
     overflow: hidden;
-}
-
-.calculator-container {
-    perspective: 1000px;
-}
-
-/* ==================== Calculator UI ==================== */
-.calculator {
-    background: var(--calc-bg);
-    backdrop-filter: blur(20px);
-    width: 350px;
-    padding: 25px;
-    border-radius: 30px;
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    transform-style: preserve-3d;
-    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.display {
-    background: var(--display-bg);
-    margin-bottom: 25px;
-    border-radius: 20px;
-    padding: 20px;
-    text-align: left;
-    min-height: 100px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    border: 1px solid var(--glass-border);
-    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.previous-operand {
-    color: var(--text-secondary);
-    font-size: 1.1rem;
-    min-height: 1.5rem;
-    word-break: break-all;
-}
-
-.current-operand {
-    color: var(--text-primary);
-    font-size: 2.5rem;
-    font-weight: 700;
-    word-break: break-all;
-    font-family: 'Orbitron', sans-serif;
-    margin-top: 5px;
-}
-
-.buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-}
-
-.btn {
-    border: none;
-    background: var(--btn-bg);
-    color: var(--text-primary);
-    padding: 20px 0;
-    border-radius: 18px;
-    font-size: 1.25rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
     display: flex;
     justify-content: center;
     align-items: center;
-    user-select: none;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-}
-
-.btn:hover {
-    background: var(--btn-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-}
-
-.btn:active {
-    transform: translateY(1px);
-}
-
-.col-2 {
-    grid-column: span 2;
-}
-
-.operator-btn {
-    color: var(--operator-color);
-    background: rgba(255, 159, 10, 0.1);
-}
-
-.operator-btn:hover {
-    background: var(--operator-color);
-    color: white;
-}
-
-.equals-btn {
-    background: var(--equals-color);
-    color: #fff;
-}
-
-.equals-btn:hover {
-    background: #28b840;
-    box-shadow: 0 4px 15px rgba(50, 215, 75, 0.4);
-}
-
-.action-btn {
-    color: var(--action-color);
-    background: rgba(255, 69, 58, 0.1);
-}
-
-.action-btn:hover {
-    background: var(--action-color);
-    color: white;
-}
-
-/* ==================== Vault UI Improvements ==================== */
-.vault-container {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 900px;
-    height: 600px;
-    background: #0f172a;
-    border-radius: 30px;
-    display: flex;
-    overflow: hidden;
-    border: 1px solid rgba(0, 210, 255, 0.3);
-    box-shadow: 0 0 80px rgba(0, 0, 0, 0.8);
-    z-index: 100;
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-}
-
-.vault-container.active {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translate(-50%, -50%) scale(1);
-}
-
-/* Sidebar */
-.vault-sidebar {
-    width: 240px;
-    background: rgba(30, 41, 59, 0.5);
-    backdrop-filter: blur(10px);
-    border-left: 1px solid rgba(255, 255, 255, 0.05);
-    display: flex;
-    flex-direction: column;
-    padding: 30px 20px;
-}
-
-.vault-logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--accent-color);
-    margin-bottom: 50px;
-}
-
-.vault-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    flex-grow: 1;
-}
-
-.nav-item {
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    padding: 12px 15px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-align: right;
-}
-
-.nav-item:hover,
-.nav-item.active {
-    background: rgba(0, 210, 255, 0.1);
-    color: var(--accent-color);
-}
-
-.lock-btn {
-    background: rgba(255, 69, 58, 0.1);
-    border: 1px solid rgba(255, 69, 58, 0.2);
-    color: #ff453a;
-    padding: 12px;
-    border-radius: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-weight: 700;
-    transition: all 0.3s;
-}
-
-.lock-btn:hover {
-    background: #ff453a;
-    color: white;
-}
-
-/* Main Content */
-.vault-main {
-    flex-grow: 1;
-    padding: 30px 40px;
-    background: radial-gradient(circle at top left, rgba(0, 210, 255, 0.05), transparent);
-    overflow-y: auto;
-}
-
-.vault-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 40px;
-}
-
-.welcome-text h2 {
-    font-size: 1.8rem;
-    margin-bottom: 5px;
-}
-
-.welcome-text p {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-}
-
-.status-badge {
-    background: rgba(50, 215, 75, 0.1);
-    color: #32d74b;
-    padding: 8px 16px;
-    border-radius: 50px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    border: 1px solid rgba(50, 215, 75, 0.2);
-}
-
-/* Stats */
-.vault-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    margin-bottom: 40px;
-}
-
-.stat-card {
-    background: rgba(255, 255, 255, 0.03);
-    padding: 20px;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    display: flex;
-    flex-direction: column;
-}
-
-.stat-value {
-    font-size: 1.8rem;
-    font-weight: 700;
-    font-family: 'Orbitron', sans-serif;
-    color: var(--accent-color);
-}
-
-.stat-label {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
-/* Grid */
-.vault-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-}
-
-.vault-item {
-    background: rgba(255, 255, 255, 0.03);
-    padding: 25px;
-    border-radius: 24px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.vault-item:hover {
-    background: rgba(0, 210, 255, 0.05);
-    border-color: var(--accent-color);
-    transform: translateY(-5px);
-}
-
-.item-icon {
-    width: 60px;
-    height: 60px;
-    background: rgba(0, 210, 255, 0.1);
-    border-radius: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.6rem;
-    color: var(--accent-color);
-}
-
-.item-info h3 {
-    font-size: 1.1rem;
-    margin-bottom: 4px;
-}
-
-.item-info p {
-    color: var(--text-secondary);
-    font-size: 0.85rem;
-}
-
-/* ==================== Password Setup Modal ==================== */
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(15px);
-    z-index: 2000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    animation: fadeIn 0.4s ease;
-}
-
-.setup-card {
-    background: #1e293b;
-    width: 400px;
-    padding: 40px;
-    border-radius: 30px;
-    border: 1px solid var(--accent-color);
-    text-align: center;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-}
-
-.setup-icon {
-    font-size: 4rem;
-    color: var(--accent-color);
-    margin-bottom: 20px;
-}
-
-.setup-card h3 {
-    font-size: 1.6rem;
-    margin-bottom: 10px;
-}
-
-.setup-card p {
-    color: var(--text-secondary);
-    margin-bottom: 30px;
-}
-
-.setup-inputs {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 30px;
-}
-
-.setup-inputs input {
-    background: #0f172a;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
-    padding: 15px;
-    border-radius: 12px;
-    text-align: center;
-    font-size: 1.2rem;
-    letter-spacing: 5px;
-}
-
-.setup-inputs input:focus {
-    border-color: var(--accent-color);
-    outline: none;
-    box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
-}
-
-.setup-btn {
-    width: 100%;
-    background: var(--accent-color);
-    color: #000;
-    border: none;
-    padding: 15px;
-    border-radius: 12px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.setup-btn:hover {
-    background: #33e1ff;
-    transform: translateY(-2px);
 }
 
 .hidden {
     display: none !important;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
+/* ==================== Calculator Styling ==================== */
+.calculator-wrapper {
+    perspective: 1000px;
+    z-index: 10;
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-
-/* ==================== Animations ==================== */
-.reveal-anim {
-    animation: fadeInScale 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+.calculator {
+    background: var(--card-bg);
+    width: 360px;
+    padding: 25px;
+    border-radius: 35px;
+    border: 1px solid var(--border);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
-@keyframes fadeInScale {
-    from {
-        opacity: 0;
-        transform: scale(0.9) translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+.calc-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
-.notification {
+.display {
+    background: #020617;
+    height: 120px;
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    margin-bottom: 25px;
+    border: 1px solid var(--border);
+    box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.previous-operand {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    min-height: 1.5rem;
+}
+
+.current-operand {
+    font-size: 2.8rem;
+    font-family: 'Orbitron', sans-serif;
+    color: var(--text-main);
+    letter-spacing: 2px;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.btn {
+    height: 65px;
+    border: none;
+    border-radius: 18px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #1e293b;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    background: #334155;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.operator-btn {
+    color: #ff9f0a;
+    background: rgba(255, 159, 10, 0.1);
+}
+
+.action-btn {
+    color: #ff453a;
+    background: rgba(255, 69, 58, 0.1);
+}
+
+.equals-btn {
+    background: var(--accent);
+    color: #000;
+}
+
+.col-2 {
+    grid-column: span 2;
+}
+
+/* ==================== Vault Overlay ==================== */
+.vault-overlay {
     position: fixed;
-    bottom: 30px;
-    background: var(--btn-bg);
-    padding: 15px 30px;
+    inset: 0;
+    background: var(--bg-dark);
+    display: flex;
+    z-index: 100;
+    animation: slideIn 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: scale(1.1);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.sidebar {
+    width: 280px;
+    background: var(--sidebar-bg);
+    border-left: 1px solid var(--border);
+    padding: 40px 25px;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 50px;
+}
+
+.brand-icon {
+    width: 45px;
+    height: 45px;
+    background: var(--accent-glow);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-grow: 1;
+}
+
+.nav-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 15px 20px;
+    border-radius: 15px;
+    text-align: right;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: 0.3s;
+}
+
+.nav-btn i {
+    width: 20px;
+    font-size: 1.1rem;
+}
+
+.nav-btn:hover,
+.nav-btn.active {
+    background: var(--glass);
+    color: var(--accent);
+}
+
+.exit-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: 15px;
+    border-radius: 15px;
+    width: 100%;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Main Content Area */
+.vault-main {
+    flex-grow: 1;
+    padding: 50px;
+    overflow-y: auto;
+}
+
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.header-info h1 {
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+}
+
+.header-info p {
+    color: var(--text-dim);
+}
+
+.add-btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 12px 25px;
     border-radius: 50px;
-    border: 1px solid var(--accent-color);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    margin-bottom: 50px;
+}
+
+.stat-item {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 25px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.stat-icon {
+    width: 65px;
+    height: 65px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.img-bg {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+}
+
+.vid-bg {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+}
+
+.doc-bg {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.count {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.label {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 100px 0;
+    color: var(--text-dim);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.2;
+}
+
+/* Notifications */
+.notif {
+    position: fixed;
+    top: 30px;
+    background: var(--accent);
+    color: #000;
+    padding: 15px 40px;
+    border-radius: 50px;
+    font-weight: 700;
+    box-shadow: 0 10px 30px var(--accent-glow);
+    z-index: 2000;
+    animation: fadeInDown 0.4s ease;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

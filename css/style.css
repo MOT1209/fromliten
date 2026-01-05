@@ -1018,3 +1018,76 @@ textarea:focus {
     opacity: 1;
     transform: translateY(0);
 }
+
+/* 
+=========================================
+   AVATAR / ROBOT STYLES
+=========================================
+*/
+#avatar-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 150px;
+    height: 200px;
+    z-index: 9999;
+    cursor: pointer;
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.3));
+    transition: transform 0.3s;
+}
+
+#avatar-container:hover {
+    transform: scale(1.05);
+}
+
+.avatar-bubble {
+    position: absolute;
+    bottom: 110%;
+    /* Above the robot */
+    right: 0;
+    left: -100px;
+    /* Center-ish relative to avatar */
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--accent);
+    padding: 15px;
+    border-radius: 15px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Fallback for Arabic */
+    font-size: 0.95rem;
+    font-weight: 600;
+    min-width: 220px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    direction: rtl;
+    line-height: 1.5;
+    pointer-events: none;
+    text-align: right;
+}
+
+/* Arrow for the bubble */
+.avatar-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    right: 60px;
+    /* Align with robot head roughly */
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: var(--accent) transparent;
+}
+
+.pop-in {
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0) translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}

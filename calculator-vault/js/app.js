@@ -1,263 +1,192 @@
-class Calculator {
-    constructor(previousOperandElement, currentOperandElement) {
-        this.previousOperandElement = previousOperandElement;
-        this.currentOperandElement = currentOperandElement;
+class VaultCalculator {
+    constructor() {
+        this.prevElement = document.getElementById('previous-operand');
+        this.currElement = document.getElementById('current-operand');
         this.clear();
-        this.loadPassword();
-    }
 
-    loadPassword() {
-        this.secretCode = localStorage.getItem('vaultPassword') || null;
-    }
+        // Load System State
+        this.secretCode = localStorage.getItem('vaultPassword');
+        this.isSetupMode = !this.secretCode;
+        this.setupStep = 0; // 0: initial, 1: first entry, 2: confirm entry
+        this.tempCode = "";
 
-    setPassword(password) {
-        localStorage.setItem('vaultPassword', password);
-        this.secretCode = password;
+        if (this.isSetupMode) {
+            this.showTextDisplay("SET CODE");
+        }
     }
 
     clear() {
         this.currentOperand = "0";
         this.previousOperand = "";
         this.operation = undefined;
-        this.shouldResetScreen = false;
+        this.isTextMode = false;
+    }
+
+    showTextDisplay(text) {
+        this.isTextMode = true;
+        this.currentOperand = text;
+        this.updateDisplay();
     }
 
     delete() {
+        if (this.isTextMode) { this.clear(); this.updateDisplay(); return; }
         if (this.currentOperand === "0") return;
-        if (this.currentOperand.length === 1) {
-            this.currentOperand = "0";
-        } else {
-            this.currentOperand = this.currentOperand.toString().slice(0, -1);
-        }
+        this.currentOperand = this.currentOperand.toString().slice(0, -1) || "0";
+        this.updateDisplay();
     }
 
     appendNumber(number) {
+        if (this.isTextMode) this.clear();
         if (number === "." && this.currentOperand.includes(".")) return;
-        if (this.shouldResetScreen || this.currentOperand === "0") {
+        if (this.currentOperand === "0") {
             this.currentOperand = number.toString();
-            this.shouldResetScreen = false;
         } else {
-            this.currentOperand = this.currentOperand.toString() + number.toString();
+            this.currentOperand += number.toString();
         }
+        this.updateDisplay();
     }
 
-    chooseOperation(operation) {
-        if (this.currentOperand === "") return;
-        if (this.previousOperand !== "") {
-            this.compute();
-        }
-        this.operation = operation;
+    chooseOperation(op) {
+        if (this.isTextMode) return;
+        if (this.currentOperand === "0") return;
+        if (this.previousOperand !== "") this.compute();
+        this.operation = op;
         this.previousOperand = this.currentOperand;
-        this.currentOperand = "";
+        this.currentOperand = "0";
+        this.updateDisplay();
     }
 
     compute() {
-        let computation;
+        let result;
         const prev = parseFloat(this.previousOperand);
-        const current = parseFloat(this.currentOperand);
-        if (isNaN(prev) || isNaN(current)) return;
+        const curr = parseFloat(this.currentOperand);
+        if (isNaN(prev) || isNaN(curr)) return;
 
         switch (this.operation) {
-            case "+":
-                computation = prev + current;
-                break;
-            case "-":
-                computation = prev - current;
-                break;
-            case "*":
-                computation = prev * current;
-                break;
-            case "/":
-                if (current === 0) {
-                    showNotification("لا يمكن القسمة على صفر!");
-                    this.clear();
-                    return;
-                }
-                computation = prev / current;
-                break;
-            default:
-                return;
+            case "+": result = prev + curr; break;
+            case "-": result = prev - curr; break;
+            case "*": result = prev * curr; break;
+            case "/": result = curr === 0 ? "Error" : prev / curr; break;
+            default: return;
         }
 
-        this.currentOperand = computation.toString();
+        this.currentOperand = result.toString();
         this.operation = undefined;
         this.previousOperand = "";
-        this.shouldResetScreen = true;
+        this.updateDisplay();
     }
 
-    getDisplayNumber(number) {
-        const stringNumber = number.toString();
-        const integerDigits = parseFloat(stringNumber.split('.')[0]);
-        const decimalDigits = stringNumber.split('.')[1];
-        let integerDisplay;
-        if (isNaN(integerDigits)) {
-            integerDisplay = '';
-        } else {
-            integerDisplay = integerDigits.toLocaleString('en', { maximumFractionDigits: 0 });
+    handleEquals() {
+        // --- VAULT LOGIC ---
+        if (this.isSetupMode) {
+            this.handleSetupProcedure();
+            return;
         }
-        if (decimalDigits != null) {
-            return `${integerDisplay}.${decimalDigits}`;
-        } else {
-            return integerDisplay;
+
+        if (this.currentOperand === this.secretCode) {
+            openVault();
+            this.clear();
+            this.updateDisplay();
+            return;
+        }
+
+        // --- NORMAL CALC ---
+        this.compute();
+    }
+
+    handleSetupProcedure() {
+        const input = this.currentOperand;
+
+        if (this.setupStep === 0 || this.isTextMode) {
+            this.setupStep = 1;
+            this.showTextDisplay("ENTER CODE");
+            return;
+        }
+
+        if (this.setupStep === 1) {
+            if (input.length < 4) {
+                showNotif("الرمز يجب أن يكون 4 أرقام فأكثر");
+                return;
+            }
+            this.tempCode = input;
+            this.setupStep = 2;
+            this.showTextDisplay("CONFIRM");
+            return;
+        }
+
+        if (this.setupStep === 2) {
+            if (input === this.tempCode) {
+                localStorage.setItem('vaultPassword', input);
+                this.secretCode = input;
+                this.isSetupMode = false;
+                showNotif("تم ضبط الرمز بنجاح!");
+                this.showTextDisplay("SAVED");
+                setTimeout(() => { this.clear(); this.updateDisplay(); }, 2000);
+            } else {
+                showNotif("الرموز غير متطابقة! حاول مجدداً");
+                this.setupStep = 1;
+                this.showTextDisplay("RE-ENTER");
+            }
         }
     }
 
     updateDisplay() {
-        this.currentOperandElement.innerText = this.getDisplayNumber(this.currentOperand) || "0";
-        if (this.operation != null) {
-            this.previousOperandElement.innerText =
-                `${this.getDisplayNumber(this.previousOperand)} ${this.operation}`;
+        this.currElement.innerText = this.currentOperand;
+        if (this.operation) {
+            this.prevElement.innerText = `${this.previousOperand} ${this.operation}`;
         } else {
-            this.previousOperandElement.innerText = "";
+            this.prevElement.innerText = "";
         }
     }
 }
 
-// Elements
-const numberButtons = document.querySelectorAll('[data-number]');
-const operationButtons = document.querySelectorAll('[data-operator]');
-const equalsButton = document.getElementById('equals-btn');
-const deleteButton = document.querySelector('[data-action="delete"]');
-const clearButton = document.querySelector('[data-action="clear"]');
-const previousOperandElement = document.getElementById('previous-operand');
-const currentOperandElement = document.getElementById('current-operand');
-const calculatorUI = document.getElementById('calculator-ui');
-const vaultUI = document.getElementById('vault-ui');
-const lockVaultBtn = document.getElementById('lock-vault-btn');
+// --- Initialization ---
+const calc = new VaultCalculator();
 
-// Setup Modal Elements
-const setupModal = document.getElementById('setup-modal');
-const pass1Input = document.getElementById('pass1');
-const pass2Input = document.getElementById('pass2');
-const savePassBtn = document.getElementById('save-pass-btn');
-
-const calculator = new Calculator(previousOperandElement, currentOperandElement);
-
-// Check if password exists on load
-document.addEventListener('DOMContentLoaded', () => {
-    if (!calculator.secretCode) {
-        setupModal.classList.remove('hidden');
-    }
+document.querySelectorAll('[data-number]').forEach(btn => {
+    btn.addEventListener('click', () => calc.appendNumber(btn.innerText));
 });
 
-// Setup Password Logic
-savePassBtn.addEventListener('click', () => {
-    const p1 = pass1Input.value;
-    const p2 = pass2Input.value;
-
-    if (!p1 || !p2) {
-        showNotification("الرجاء إدخال الرمز في الحقلين");
-        return;
-    }
-
-    if (p1 !== p2) {
-        showNotification("الرموز غير متطابقة!");
-        return;
-    }
-
-    if (p1.length < 4) {
-        showNotification("يجب أن يتكون الرمز من 4 أرقام على الأقل");
-        return;
-    }
-
-    calculator.setPassword(p1);
-    setupModal.classList.add('hidden');
-    showNotification("تم إعداد الرمز بنجاح! جرب إدخاله في الحاسبة");
+document.querySelectorAll('[data-operator]').forEach(btn => {
+    btn.addEventListener('click', () => calc.chooseOperation(btn.getAttribute('data-operator')));
 });
 
-// Calculator event listeners
-numberButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        calculator.appendNumber(button.innerText);
-        calculator.updateDisplay();
-    });
-});
+document.getElementById('equals-btn').addEventListener('click', () => calc.handleEquals());
+document.querySelector('[data-action="clear"]').addEventListener('click', () => { calc.clear(); calc.updateDisplay(); });
+document.querySelector('[data-action="delete"]').addEventListener('click', () => calc.delete());
 
-operationButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        calculator.chooseOperation(button.getAttribute('data-operator'));
-        calculator.updateDisplay();
-    });
-});
-
-equalsButton.addEventListener('click', button => {
-    if (calculator.currentOperand === calculator.secretCode && calculator.secretCode !== null) {
-        openVault();
-        calculator.clear();
-        calculator.updateDisplay();
-        return;
-    }
-
-    calculator.compute();
-    calculator.updateDisplay();
-});
-
-clearButton.addEventListener('click', button => {
-    calculator.clear();
-    calculator.updateDisplay();
-});
-
-deleteButton.addEventListener('click', button => {
-    calculator.delete();
-    calculator.updateDisplay();
-});
-
-// Vault Interaction Logic
+// --- UI Utilities ---
 function openVault() {
-    calculatorUI.style.transform = "scale(0.8) translateY(-50px)";
-    calculatorUI.style.opacity = "0";
+    document.getElementById('calc-wrapper').style.transform = "scale(0.8) translateY(-100px)";
+    document.getElementById('calc-wrapper').style.opacity = "0";
     setTimeout(() => {
-        calculatorUI.classList.add('hidden');
-        vaultUI.classList.remove('hidden');
-        setTimeout(() => {
-            vaultUI.classList.add('active');
-        }, 50);
-    }, 400);
+        document.getElementById('calc-wrapper').classList.add('hidden');
+        document.getElementById('vault-ui').classList.remove('hidden');
+    }, 600);
 }
 
-function closeVault() {
-    vaultUI.classList.remove('active');
+document.getElementById('lock-vault').addEventListener('click', () => {
+    document.getElementById('vault-ui').classList.add('hidden');
+    document.getElementById('calc-wrapper').classList.remove('hidden');
     setTimeout(() => {
-        vaultUI.classList.add('hidden');
-        calculatorUI.classList.remove('hidden');
-        setTimeout(() => {
-            calculatorUI.style.transform = "scale(1) translateY(0)";
-            calculatorUI.style.opacity = "1";
-        }, 50);
-    }, 500);
+        document.getElementById('calc-wrapper').style.transform = "scale(1) translateY(0)";
+        document.getElementById('calc-wrapper').style.opacity = "1";
+    }, 50);
+});
+
+function showNotif(msg) {
+    const n = document.getElementById('notif');
+    n.innerText = msg;
+    n.classList.remove('hidden');
+    setTimeout(() => n.classList.add('hidden'), 3000);
 }
 
-lockVaultBtn.addEventListener('click', closeVault);
-
-// Notification Helper
-function showNotification(message) {
-    const notification = document.getElementById('notification');
-    notification.innerText = message;
-    notification.classList.remove('hidden');
-    setTimeout(() => {
-        notification.classList.add('hidden');
-    }, 3000);
-}
-
-// Keyboard support
+// Keyboard Support
 document.addEventListener('keydown', e => {
-    if (setupModal.classList.contains('hidden')) {
-        if ((e.key >= 0 && e.key <= 9) || e.key === '.') {
-            calculator.appendNumber(e.key);
-        } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
-            calculator.chooseOperation(e.key);
-        } else if (e.key === 'Enter' || e.key === '=') {
-            if (calculator.currentOperand === calculator.secretCode && calculator.secretCode !== null) {
-                openVault();
-                calculator.clear();
-            } else {
-                calculator.compute();
-            }
-        } else if (e.key === 'Backspace') {
-            calculator.delete();
-        } else if (e.key === 'Escape') {
-            calculator.clear();
-        }
-        calculator.updateDisplay();
-    }
+    if (calc.isTextMode && e.key !== 'Enter') calc.clear();
+    if (e.key >= '0' && e.key <= '9') calc.appendNumber(e.key);
+    if (e.key === '.') calc.appendNumber('.');
+    if (['+', '-', '*', '/'].includes(e.key)) calc.chooseOperation(e.key);
+    if (e.key === 'Enter' || e.key === '=') calc.handleEquals();
+    if (e.key === 'Backspace') calc.delete();
 });
