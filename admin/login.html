@@ -121,7 +121,10 @@
             const pass = document.getElementById('password').value;
 
             // Simple client-side auth simulation
-            if (user === 'admin' && pass === 'admin123') {
+            // User requested email: zwnt45602@gmail.com
+            // Keeping default 'admin' as fallback or remove if strictly restricted, 
+            // but for now allowing both or just the email.
+            if ((user === 'admin' || user === 'zwnt45602@gmail.com') && pass === 'admin123') {
                 localStorage.setItem('isAdmin', 'true');
                 window.location.href = 'dashboard.html';
             } else {
