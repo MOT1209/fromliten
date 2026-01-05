@@ -380,15 +380,10 @@
     <!-- Google Translate Script -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
-            try {
-                new google.translate.TranslateElement({
-                    pageLanguage: 'en',
-                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-                    autoDisplay: true
-                }, 'google_translate_element');
-            } catch (err) {
-                console.error("Google Translate Init Error:", err);
-            }
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
         }
     </script>
     <script type="text/javascript"

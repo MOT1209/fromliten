@@ -177,40 +177,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Custom Language Picker Logic
     const langPicker = document.querySelector('.language-picker-container');
+
+    function setTranslateCookie(lang) {
+        const domain = window.location.hostname;
+        const cookieValue = `/en/${lang}`;
+        // Set cookie for current domain and all subdomains
+        document.cookie = `googtrans=${cookieValue}; path=/`;
+        if (domain) {
+            document.cookie = `googtrans=${cookieValue}; domain=.${domain}; path=/`;
+            document.cookie = `googtrans=${cookieValue}; domain=${domain}; path=/`;
+        }
+
+        // Specifically for Chrome/Safaari, occasionally it needs a reload to trigger
+        localStorage.setItem('lastLang', lang);
+    }
+
     langOptions.forEach(opt => {
         opt.addEventListener('click', () => {
             const langCode = opt.getAttribute('data-lang');
 
-            // 1. Try to set the cookie directly (most reliable for many browsers)
-            document.cookie = `googtrans=/en/${langCode}; path=/`;
-            document.cookie = `googtrans=/en/${langCode}; domain=${window.location.hostname}; path=/`;
+            // Highlight
+            langOptions.forEach(l => l.classList.remove('active'));
+            opt.classList.add('active');
 
-            // 2. Trigger hidden Google Translate Combo Box
-            const googleCombo = document.querySelector('.goog-te-combo');
-            if (googleCombo) {
-                googleCombo.value = langCode;
-                googleCombo.dispatchEvent(new Event('change'));
+            // Set cookie and REFRESH. This is the only 100% reliable way with the gadget.
+            setTranslateCookie(langCode);
 
-                // Active Class Update
-                langOptions.forEach(l => l.classList.remove('active'));
-                opt.classList.add('active');
-
-                // Refresh to apply if combo didn't work immediately
-                setTimeout(() => {
-                    if (langCode === 'en') {
-                        location.reload(); // Hard reset for English
-                    } else {
-                        closeSettingsPanel();
-                    }
-                }, 500);
-            } else {
-                // If combo doesn't exist yet, we just reload with the cookie set
-                langOptions.forEach(l => l.classList.remove('active'));
-                opt.classList.add('active');
-                setTimeout(() => location.reload(), 500);
-            }
+            setTimeout(() => {
+                location.reload();
+            }, 300);
         });
     });
+
+    // Restore active state on load
+    const savedLang = localStorage.getItem('lastLang') || 'en';
+    const activeOpt = document.querySelector(`.lang-option[data-lang="${savedLang}"]`);
+    if (activeOpt) {
+        activeOpt.classList.add('active');
+        // Initial wheel position
+        setTimeout(() => {
+            activeOpt.scrollIntoView({ block: 'center' });
+            if (langPicker) langPicker.dispatchEvent(new Event('scroll'));
+        }, 300);
+    }
 
     // 3D Wheel Scroll Effect
     if (langPicker) {
