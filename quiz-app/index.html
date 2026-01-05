@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اسألني | تطبيق الاختبارات الذكي</title>
+    <!-- Google Fonts: Cairo and Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="bg-glow"></div>
+
+    <div class="container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="card active">
+            <div class="icon-box">
+                <i class="fas fa-brain-circuit"></i>
+            </div>
+            <h1>تطبيق اسألني</h1>
+            <p>اختبر معلوماتك في عالم البرمجة والتقنية مع تحدي الأسئلة الذكي.</p>
+            <div class="quiz-info">
+                <span><i class="fas fa-list-ol"></i> 10 أسئلة</span>
+                <span><i class="fas fa-clock"></i> 15 ثانية لكل سؤال</span>
+            </div>
+            <button id="start-btn" class="btn btn-primary">ابدأ التحدي الآن</button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="card">
+            <div class="quiz-header">
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="header-stats">
+                    <div class="timer">
+                        <i class="fas fa-stopwatch"></i>
+                        <span id="time-left">15</span>
+                    </div>
+                    <div class="question-counter">
+                        سؤال <span id="current-q">1</span> / <span id="total-q">10</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question-box">
+                <h2 id="question-text">أين يتم كتابة كود الجافا سكريبت؟</h2>
+            </div>
+
+            <div class="options-grid" id="options-container">
+                <!-- Options will be injected here -->
+            </div>
+
+            <div class="quiz-footer">
+                <button id="next-btn" class="btn btn-secondary" disabled>السؤال التالي</button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="card">
+            <div class="result-icon pulse" id="result-icon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h2>انتهى الاختبار!</h2>
+            <div class="score-box">
+                <span class="score-text">لقد أحرزت:</span>
+                <div class="score-circle">
+                    <span id="final-score">0</span>
+                    <small id="max-score">/ 10</small>
+                </div>
+            </div>
+            <p id="result-message">عمل رائع! مهاراتك في البرمجة مبشرة جداً.</p>
+            <div class="action-buttons">
+                <button id="restart-btn" class="btn btn-primary">حاول مرة أخرى</button>
+                <button id="home-btn" class="btn btn-outline" onclick="window.location.reload()">الرئيسية</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/script.js"></script>
+</body>
+
+</html>
