@@ -1190,9 +1190,9 @@ textarea:focus {
         box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
     }
 
-    70% {
+    50% {
         transform: scale(1.1);
-        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+        box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);
     }
 
     100% {
@@ -1203,6 +1203,7 @@ textarea:focus {
 
 .pulse-anim {
     animation: pulse 1.5s infinite;
+    background-color: rgba(239, 68, 68, 0.1) !important;
+    /* Slight red tint bg */
+    border: 2px solid #ef4444 !important;
 }
-
-```

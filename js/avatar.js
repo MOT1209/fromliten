@@ -70,7 +70,7 @@ class RobotAvatar {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             this.recognition = new SpeechRecognition();
             this.recognition.lang = 'ar-SA';
-            this.recognition.continuous = false;
+            this.recognition.continuous = true; // Keep listening
             this.recognition.interimResults = false;
 
             this.recognition.onstart = () => {
@@ -79,14 +79,30 @@ class RobotAvatar {
             };
 
             this.recognition.onend = () => {
-                this.isListening = false;
-                this.updateMicVisuals(false);
+                // Auto-restart if it wasn't manually stopped
+                if (this.shouldBeListening) {
+                    try {
+                        this.recognition.start();
+                    } catch (e) {
+                        this.isListening = false;
+                        this.updateMicVisuals(false);
+                    }
+                } else {
+                    this.isListening = false;
+                    this.updateMicVisuals(false);
+                }
             };
 
             this.recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                this.addMessage(transcript, 'user');
-                this.handleVoiceCommand(transcript);
+                // Get the last result only
+                const lastResultIndex = event.results.length - 1;
+                const transcript = event.results[lastResultIndex][0].transcript;
+
+                // Avoid self-talk or empty
+                if (transcript.trim().length > 0 && !this.isTalking) {
+                    this.addMessage(transcript, 'user');
+                    this.handleVoiceCommand(transcript);
+                }
             };
         } else {
             console.warn("Speech Recognition not supported in this browser.");
@@ -203,8 +219,13 @@ class RobotAvatar {
         const micBtn = this.chatWindow.querySelector('#voice-btn');
         micBtn.addEventListener('click', () => {
             if (this.recognition) {
-                if (this.isListening) this.recognition.stop();
-                else this.recognition.start();
+                if (this.isListening) {
+                    this.shouldBeListening = false;
+                    this.recognition.stop();
+                } else {
+                    this.shouldBeListening = true;
+                    this.recognition.start();
+                }
             } else {
                 alert("عذراً، متصفحك لا يدعم الأوامر الصوتية.");
             }
@@ -256,40 +277,49 @@ class RobotAvatar {
     }
 
     getBotResponse(input) {
-        const lowerInput = input.toLowerCase();
+        const lowerInput = input.trim().toLowerCase();
 
-        // 1. Greetings
-        if (lowerInput.includes('مرحبا') || lowerInput.includes('هلا') || lowerInput.includes('سلام') || lowerInput.includes('hi')) {
-            return "يا هلا! آمرني، وش تبي تعرف؟";
+        // 1. Greetings & Dialects (Gulf, Egyptian, Levantine, etc.)
+        const greetings = ['مرحبا', 'هلا', 'سلام', 'هاي', 'ألو', 'صباح الخير', 'مساء الخير', 'ازيك', 'شلونك', 'كيفك', 'عامل ايه'];
+        if (greetings.some(w => lowerInput.includes(w))) {
+            return "يا هلا وغلا! أنا راشد، مساعدك الذكي. كيف أقدر أخدمك اليوم؟";
         }
 
-        // 2. Identity
-        if (lowerInput.includes('من انت') || lowerInput.includes('اسمك') || lowerInput.includes('مين انت')) {
-            return "أنا راشد، مساعدك الذكي. أسمعك وجاهز أجاوبك!";
+        // 2. Identity (Dialects: مين، شو، شنو)
+        if (lowerInput.includes('انت مين') || lowerInput.includes('من انت') || lowerInput.includes('مين انت') || lowerInput.includes('عرفني بنفسك') || lowerInput.includes('شو اسمك') || lowerInput.includes('شنو اسمك')) {
+            return "أنا راشد، روبوت ذكي طورني مصمم هذا الموقع عشان أساعدك وأجاوب على أسئلتك. أنا هنا لخدمتك!";
         }
 
-        // 3. Website Info / Projects
-        if (lowerInput.includes('موقع') || lowerInput.includes('مشروع') || lowerInput.includes('اعمال')) {
-            return "هذا الموقع يستعرض أعمالي في البرمجة وتصميم الألعاب، مثل لعبة المزرعة ومشروع القرآن الكريم.";
+        // 3. Website Info / Projects (Dialects: شو عندك، وش تسوي، وريني، مشاريع)
+        if (lowerInput.includes('موقع') || lowerInput.includes('مشروع') || lowerInput.includes('أعمال') || lowerInput.includes('اعمال') || lowerInput.includes('وش عندك') || lowerInput.includes('ايش عندك') || lowerInput.includes('شو في') || lowerInput.includes('لعبه') || lowerInput.includes('لعبة')) {
+            return "الموقع هذا هو المعرض الشخصي لمشاريعي. فيه ثلاث مشاريع رئيسية: لعبة المزرعة ثلاثية الأبعاد الرهيبة، الخزنة الذكية، وتطبيق القرآن الكريم. تبي تفاصيل عن أي وحدة؟";
         }
 
-        // 4. Contact
-        if (lowerInput.includes('تواصل') || lowerInput.includes('رقم') || lowerInput.includes('اتصل')) {
-            return "تقدر تتواصل معي عن طريق فورم 'Contact' تحت، أو حساباتي في السوشيال ميديا.";
+        // 4. Contact (Dialects: كيف اكلمك، وينك، رقمك)
+        if (lowerInput.includes('تواصل') || lowerInput.includes('رقم') || lowerInput.includes('اتصل') || lowerInput.includes('اكلمك') || lowerInput.includes('وين مكانك')) {
+            return "أسهل طريقة تتواصل معي هي تعبي النموذج الموجود في آخر الصفحة تحت عنوان 'Contact'، أو تابعني على حساباتي الموجودة هناك.";
         }
 
-        // 5. Skills
-        if (lowerInput.includes('مهارات') || lowerInput.includes('لغات') || lowerInput.includes('خبرة')) {
-            return "لدي خبرة في HTML, CSS, JavaScript, Python وأعمل حالياً على تطوير الألعاب باستخدام Three.js ومحركات أخرى.";
+        // 5. Skills (Dialects: وش تعرف، شنو لغاتك)
+        if (lowerInput.includes('مهارات') || lowerInput.includes('لغات') || lowerInput.includes('تعرف تبرمج') || lowerInput.includes('شاطر في')) {
+            return "أنا مبرمج أعشق التحدي! عندي خبرة قوية في HTML, CSS, JavaScript, و Python. وحالياً مركز بقوة على تطوير الألعاب والـ 3D باستخدام Three.js.";
         }
 
-        // 6. Admin / Control Panel
-        if (lowerInput.includes('ادمن') || lowerInput.includes('تحكم') || lowerInput.includes('دخول') || lowerInput.includes('admin')) {
-            return "للوصول للوحة التحكم، استخدم رابط 'Admin Login' الموجود في تذييل الصفحة (Footer).";
+        // 6. Admin 
+        if (lowerInput.includes('ادمن') || lowerInput.includes('مطور') || lowerInput.includes('دخول') || lowerInput.includes('admin')) {
+            return "أهلاً بالمدير! مكان الدخول السري موجود في أسفل الصفحة تماماً، دور على كلمة 'Admin Login'.";
         }
 
-        // Default
-        return "ما فهمت عليك بالضبط، بس شكل الموضوع مهم! تقدر تعيد السؤال بصيغة ثانية؟";
+        // 7. General Talk (Dialects)
+        if (lowerInput.includes('شكرا') || lowerInput.includes('يعطيك العافية') || lowerInput.includes('تسلم')) {
+            return "العفو! ولو، أنا بالخدمة دائماً.";
+        }
+        if (lowerInput.includes('احبك') || lowerInput.includes('حب')) {
+            return "يا حبيبي! وأنا بعد أحب أساعدك.";
+        }
+
+        // Default Fallback
+        return "آسف، ما فهمت عليك زين. صوتي يمكن يقطع أو لهجتك جديدة علي. ممكن تعيد السؤال؟";
     }
 
     speak(text) {
