@@ -181,7 +181,11 @@ document.addEventListener('DOMContentLoaded', () => {
         opt.addEventListener('click', () => {
             const langCode = opt.getAttribute('data-lang');
 
-            // Trigger hidden Google Translate
+            // 1. Try to set the cookie directly (most reliable for many browsers)
+            document.cookie = `googtrans=/en/${langCode}; path=/`;
+            document.cookie = `googtrans=/en/${langCode}; domain=${window.location.hostname}; path=/`;
+
+            // 2. Trigger hidden Google Translate Combo Box
             const googleCombo = document.querySelector('.goog-te-combo');
             if (googleCombo) {
                 googleCombo.value = langCode;
@@ -191,10 +195,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 langOptions.forEach(l => l.classList.remove('active'));
                 opt.classList.add('active');
 
-                // Auto close panel after selection
-                setTimeout(closeSettingsPanel, 500);
+                // Refresh to apply if combo didn't work immediately
+                setTimeout(() => {
+                    if (langCode === 'en') {
+                        location.reload(); // Hard reset for English
+                    } else {
+                        closeSettingsPanel();
+                    }
+                }, 500);
             } else {
-                alert("Translation system is still loading. Please try again in a moment.");
+                // If combo doesn't exist yet, we just reload with the cookie set
+                langOptions.forEach(l => l.classList.remove('active'));
+                opt.classList.add('active');
+                setTimeout(() => location.reload(), 500);
             }
         });
     });

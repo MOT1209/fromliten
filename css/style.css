@@ -1333,8 +1333,10 @@ textarea:focus {
 
 /* Custom Google Translate Styling inside settings */
 #google_translate_element {
-    display: none !important;
-    /* Hide the default widget */
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+    visibility: hidden;
 }
 
 .language-picker-container {
