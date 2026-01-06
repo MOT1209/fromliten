@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
-console.log("Rust Survival Engine v2.1: Initializing...");
+console.log("Rust Survival Engine v2.5: Initializing with Collision Physics...");
 
 // ==================== CONFIGURATION ====================
 const CONFIG = {
@@ -10,12 +10,12 @@ const CONFIG = {
     ROCK_COUNT: 35,
     BUILD_DISTANCE: 6,
     INTERACT_DISTANCE: 3.5,
-    PLAYER_SPEED: 60, // Human running speed (Terminal velocity = 6 units/sec)
+    PLAYER_SPEED: 80,
     FRICTION: 10.0,
     GRAVITY: 22.0,
-    JUMP_FORCE: 8.5
+    JUMP_FORCE: 8.5,
+    PLAYER_RADIUS: 0.8 // Radius for collision
 };
-
 
 // ==================== STATE ====================
 const state = {
@@ -52,7 +52,7 @@ try {
 
     const pointerControls = new PointerLockControls(camera, document.body);
 
-    // ==================== LIGHTING (Day/Night Base) ====================
+    // ==================== LIGHTING ====================
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
@@ -60,17 +60,12 @@ try {
     sun.position.set(50, 100, 20);
     sun.castShadow = true;
     sun.shadow.mapSize.set(1024, 1024);
-    sun.shadow.camera.left = -100;
-    sun.shadow.camera.right = 100;
-    sun.shadow.camera.top = 100;
-    sun.shadow.camera.bottom = -100;
     scene.add(sun);
 
     // ==================== WORLD OBJECTS ====================
     const groundGeo = new THREE.PlaneGeometry(CONFIG.WORLD_SIZE, CONFIG.WORLD_SIZE, 40, 40);
     groundGeo.rotateX(-Math.PI / 2);
 
-    // Slight noise to terrain
     const pos = groundGeo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i);
@@ -85,6 +80,7 @@ try {
     scene.add(ground);
 
     const interactables = [];
+    const collisionObjects = []; // Strictly for player-to-world collision
 
     // Forest Generation
     const trunkGeo = new THREE.CylinderGeometry(0.2, 0.35, 2.5, 8);
@@ -95,8 +91,9 @@ try {
     for (let i = 0; i < CONFIG.TREE_COUNT; i++) {
         const x = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
         const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
-        const tree = new THREE.Group();
+        const y = getTerrainHeight(x, z);
 
+        const tree = new THREE.Group();
         const trunk = new THREE.Mesh(trunkGeo, woodMat);
         trunk.position.y = 1.25;
         trunk.castShadow = true;
@@ -107,26 +104,30 @@ try {
         leaves.castShadow = true;
         tree.add(leaves);
 
-        tree.position.set(x, getTerrainHeight(x, z), z);
-        tree.userData = { type: 'tree', health: 4 };
+        tree.position.set(x, y, z);
+        tree.userData = { type: 'tree', health: 4, radius: 0.5 };
         scene.add(tree);
         interactables.push(tree);
+        collisionObjects.push(tree);
     }
 
     // Rocks
     const rockGeo = new THREE.DodecahedronGeometry(1.2, 0);
-    const stoneMat = new THREE.MeshStandardMaterial({ color: 0x6e7072, roughness: 0.8 });
+    const stoneMat = new THREE.MeshStandardMaterial({ color: 0x6e7072 });
     for (let i = 0; i < CONFIG.ROCK_COUNT; i++) {
         const x = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
         const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
+        const y = getTerrainHeight(x, z);
         const rock = new THREE.Mesh(rockGeo, stoneMat);
-        rock.position.set(x, getTerrainHeight(x, z) + 0.5, z);
+        rock.position.set(x, y + 0.5, z);
         rock.rotation.set(Math.random(), Math.random(), Math.random());
-        rock.scale.set(0.8 + Math.random(), 0.5 + Math.random(), 0.8 + Math.random());
+        const scale = 0.8 + Math.random();
+        rock.scale.set(scale, scale, scale);
         rock.castShadow = true;
-        rock.userData = { type: 'rock', health: 5 };
+        rock.userData = { type: 'rock', health: 5, radius: scale };
         scene.add(rock);
         interactables.push(rock);
+        collisionObjects.push(rock);
     }
 
     function getTerrainHeight(x, z) {
@@ -157,12 +158,41 @@ try {
             );
             ghost.visible = true;
             ghost.material.color.setHex(state.inventory.wood >= 10 ? 0x00ff00 : 0xff0000);
-        } else {
-            ghost.visible = false;
-        }
+        } else { ghost.visible = false; }
     }
 
-    // ==================== SYSTEMS ====================
+    // ==================== COLLISION DETECTION ====================
+    function checkCollisions(newPos) {
+        for (let obj of collisionObjects) {
+            const dx = newPos.x - obj.position.x;
+            const dz = newPos.z - obj.position.z;
+            const distance = Math.sqrt(dx * dx + dz * dz);
+            const minDistance = CONFIG.PLAYER_RADIUS + (obj.userData.radius || 0.5);
+
+            if (distance < minDistance) {
+                // Collision detected! Push back.
+                const angle = Math.atan2(dz, dx);
+                newPos.x = obj.position.x + Math.cos(angle) * minDistance;
+                newPos.z = obj.position.z + Math.sin(angle) * minDistance;
+                return true;
+            }
+        }
+        for (let obj of builtObjects) {
+            const dx = newPos.x - obj.position.x;
+            const dz = newPos.z - obj.position.z;
+            const distance = Math.sqrt(dx * dx + dz * dz);
+            const minDistance = CONFIG.PLAYER_RADIUS + 0.75;
+            if (distance < minDistance) {
+                const angle = Math.atan2(dz, dx);
+                newPos.x = obj.position.x + Math.cos(angle) * minDistance;
+                newPos.z = obj.position.z + Math.sin(angle) * minDistance;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ==================== HUD & SYSTEMS ====================
     function updateHUD() {
         document.getElementById('wood-count').innerText = state.inventory.wood;
         document.getElementById('stone-count').innerText = state.inventory.stone;
@@ -171,14 +201,13 @@ try {
         document.getElementById('hunger-fill').style.width = state.stats.hunger + '%';
     }
 
-    // Survival Decay
     setInterval(() => {
         if (pointerControls.isLocked) {
-            state.stats.hunger = Math.max(0, state.stats.hunger - 0.5);
+            state.stats.hunger = Math.max(0, state.stats.hunger - 0.2);
             if (state.stats.hunger <= 0) state.stats.health = Math.max(0, state.stats.health - 1);
             updateHUD();
         }
-    }, 2000);
+    }, 3000);
 
     const raycaster = new THREE.Raycaster();
     function performAction() {
@@ -201,21 +230,18 @@ try {
         if (hits.length > 0 && hits[0].distance < CONFIG.INTERACT_DISTANCE) {
             let obj = hits[0].object;
             while (obj.parent !== scene) obj = obj.parent;
-
             obj.userData.health -= 1;
-            // Visual Shake
             obj.position.x += 0.1;
             setTimeout(() => obj.position.x -= 0.1, 50);
-
             if (obj.userData.type === 'tree') state.inventory.wood += 5;
             else {
                 state.inventory.stone += 3;
                 if (Math.random() > 0.8) state.inventory.iron += 1;
             }
-
             if (obj.userData.health <= 0) {
                 scene.remove(obj);
                 interactables.splice(interactables.indexOf(obj), 1);
+                collisionObjects.splice(collisionObjects.indexOf(obj), 1);
             }
             updateHUD();
         }
@@ -240,9 +266,9 @@ try {
                 inv.style.display = 'block';
                 pointerControls.unlock();
                 document.getElementById('inventory-grid').innerHTML = `
-                    <div class="inventory-item">🪵 Wood: ${state.inventory.wood}</div>
-                    <div class="inventory-item">🪨 Stone: ${state.inventory.stone}</div>
-                    <div class="inventory-item">⚙️ Iron: ${state.inventory.iron}</div>
+                    <div class="inventory-item">🪵 الخشب: ${state.inventory.wood}</div>
+                    <div class="inventory-item">🪨 الحجر: ${state.inventory.stone}</div>
+                    <div class="inventory-item">⚙️ الحديد: ${state.inventory.iron}</div>
                 `;
             }
         }
@@ -254,7 +280,6 @@ try {
         if (e.code === 'KeyA') state.controls.left = false;
         if (e.code === 'KeyD') state.controls.right = false;
     });
-
 
     window.addEventListener('mousedown', (e) => {
         if (!pointerControls.isLocked) return;
@@ -288,9 +313,18 @@ try {
             if (state.controls.forward || state.controls.backward) velocity.z -= direction.z * CONFIG.PLAYER_SPEED * delta;
             if (state.controls.left || state.controls.right) velocity.x -= direction.x * CONFIG.PLAYER_SPEED * delta;
 
+            const moveStepX = -velocity.x * delta;
+            const moveStepZ = -velocity.z * delta;
 
-            pointerControls.moveRight(-velocity.x * delta);
-            pointerControls.moveForward(-velocity.z * delta);
+            // Apply movement to a temporary vector to check for collisions
+            const nextX = camera.position.x + (Math.sin(camera.rotation.y) * moveStepZ + Math.cos(camera.rotation.y) * moveStepX);
+            const nextZ = camera.position.z + (Math.cos(camera.rotation.y) * moveStepZ - Math.sin(camera.rotation.y) * moveStepX);
+
+            const collisionPoint = { x: nextX, z: nextZ };
+            checkCollisions(collisionPoint);
+
+            camera.position.x = collisionPoint.x;
+            camera.position.z = collisionPoint.z;
             camera.position.y += (velocity.y * delta);
 
             const groundY = getTerrainHeight(camera.position.x, camera.position.z) + 1.6;
@@ -313,11 +347,9 @@ try {
     });
 
     animate();
-    setTimeout(() => {
-        document.getElementById('loading-screen').style.display = 'none';
-    }, 1500);
+    setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 1000);
 
 } catch (err) {
     console.error("Critical Failure:", err);
-    alert("Error initializing survival engine: " + err.message);
+    alert("Error: " + err.message);
 }
