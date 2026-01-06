@@ -526,8 +526,17 @@ try {
     });
 
     document.getElementById('start-button').onclick = () => pointerControls.lock();
-    pointerControls.addEventListener('lock', () => document.getElementById('instructions').style.display = 'none');
-    pointerControls.addEventListener('unlock', () => document.getElementById('instructions').style.display = 'flex');
+    pointerControls.addEventListener('lock', () => {
+        document.getElementById('instructions').style.display = 'none';
+        document.getElementById('inventory').style.display = 'none';
+    });
+
+    pointerControls.addEventListener('unlock', () => {
+        if (document.getElementById('inventory').style.display !== 'block') {
+            document.getElementById('instructions').style.display = 'flex';
+        }
+    });
+
 
     // ==================== ANIMATION LOOP ====================
     let lastTime = performance.now();
