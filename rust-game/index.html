@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rust Survival 3D</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div id="loading-screen">
+        <div class="loader"></div>
+        <h1>Generating World...</h1>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div class="stats">
+            <div class="stat-item"><i class="fas fa-tree"></i> Wood: <span id="wood-count">0</span></div>
+            <div class="stat-item"><i class="fas fa-gem"></i> Stone: <span id="stone-count">0</span></div>
+            <div class="stat-item"><i class="fas fa-cube"></i> Iron: <span id="iron-count">0</span></div>
+        </div>
+        <div id="crosshair"></div>
+        <div id="interaction-hint">Press LMB to interact</div>
+        <div id="build-mode-hint" style="display: none;">Build Mode: Active (RMB to exit)</div>
+    </div>
+
+    <!-- Inventory -->
+    <div id="inventory">
+        <h2>Inventory</h2>
+        <div class="inventory-grid" id="inventory-grid">
+            <!-- Items added via JS -->
+        </div>
+        <div class="inventory-hint">Press 'E' to Close</div>
+    </div>
+
+    <!-- Instructions Overlay -->
+    <div id="instructions">
+        <h1>RUST SURVIVAL 3D</h1>
+        <p>W, A, S, D - Move | SPACE - Jump | CTRL - Crouch</p>
+        <p>Mouse - Look | LMB - Collect/Build | RMB - Build Mode (Pick/Exit)</p>
+        <p>E - Inventory | ESC - Pause</p>
+        <button id="start-button">START SURVIVAL</button>
+    </div>
+
+    <!-- Main Game Canvas Added by Three.js -->
+    <script type="module" src="js/game.js"></script>
+    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js" crossorigin="anonymous"></script>
+</body>
+
+</html>
