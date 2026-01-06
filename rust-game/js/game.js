@@ -10,11 +10,12 @@ const CONFIG = {
     ROCK_COUNT: 35,
     BUILD_DISTANCE: 6,
     INTERACT_DISTANCE: 3.5,
-    PLAYER_SPEED: 70, // Fixed: Drastically reduced for realism
-    FRICTION: 8.0,
-    GRAVITY: 20.0,
-    JUMP_FORCE: 8.0
+    PLAYER_SPEED: 60, // Human running speed (Terminal velocity = 6 units/sec)
+    FRICTION: 10.0,
+    GRAVITY: 22.0,
+    JUMP_FORCE: 8.5
 };
+
 
 // ==================== STATE ====================
 const state = {
@@ -284,8 +285,9 @@ try {
             direction.x = Number(state.controls.right) - Number(state.controls.left);
             direction.normalize();
 
-            if (state.controls.forward || state.controls.backward) velocity.z -= direction.z * CONFIG.PLAYER_SPEED * 10 * delta;
-            if (state.controls.left || state.controls.right) velocity.x -= direction.x * CONFIG.PLAYER_SPEED * 10 * delta;
+            if (state.controls.forward || state.controls.backward) velocity.z -= direction.z * CONFIG.PLAYER_SPEED * delta;
+            if (state.controls.left || state.controls.right) velocity.x -= direction.x * CONFIG.PLAYER_SPEED * delta;
+
 
             pointerControls.moveRight(-velocity.x * delta);
             pointerControls.moveForward(-velocity.z * delta);
