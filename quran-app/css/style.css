@@ -1,44 +1,43 @@
 /* ==================== CSS Variables ==================== */
 :root {
-    /* Light Mode Colors */
-    --bg-primary: #f8f9fa;
+    /* Premium Emerald & Gold Theme */
+    --bg-primary: #f0f2f5;
     --bg-secondary: #ffffff;
-    --bg-tertiary: #e9ecef;
-    --text-primary: #1a1a1a;
-    --text-secondary: #6c757d;
-    --accent-primary: #047857;
+    --bg-tertiary: #e4e6eb;
+    --text-primary: #1c1e21;
+    --text-secondary: #65676b;
+    --accent-primary: #065f46;
     --accent-secondary: #059669;
-    --accent-gold: #d4af37;
-    --border-color: #dee2e6;
-    --shadow: rgba(0, 0, 0, 0.1);
-    --overlay: rgba(0, 0, 0, 0.5);
-
-    /* Highlight color for currently playing verse */
-    --highlight-bg: #fef3c7;
-    --highlight-border: #f59e0b;
-    --highlight-text: #92400e;
+    --accent-gold: #b45309;
+    --accent-gold-light: #f59e0b;
+    --border-color: rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.12);
+    --glass-bg: rgba(255, 255, 255, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --highlight-bg: rgba(16, 185, 129, 0.1);
 }
 
 .dark-mode {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-tertiary: #334155;
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
+    --bg-primary: #080c14;
+    --bg-secondary: #111827;
+    --bg-tertiary: #1f2937;
+    --text-primary: #f9fafb;
+    --text-secondary: #9ca3af;
     --accent-primary: #10b981;
     --accent-secondary: #34d399;
     --accent-gold: #fbbf24;
-    --border-color: rgba(255, 255, 255, 0.1);
-    --shadow: rgba(0, 0, 0, 0.4);
-    --overlay: rgba(0, 0, 0, 0.8);
-    --glass-bg: rgba(30, 41, 59, 0.7);
+    --accent-gold-light: #fcd34d;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.5);
+    --glass-bg: rgba(17, 24, 39, 0.75);
     --glass-border: rgba(255, 255, 255, 0.05);
-
-    /* Dark mode highlight */
-    --highlight-bg: rgba(16, 185, 129, 0.2);
-    --highlight-border: #10b981;
-    --highlight-text: #34d399;
+    --highlight-bg: rgba(16, 185, 129, 0.15);
 }
+
 
 /* ==================== Base Styles ==================== */
 * {
@@ -65,72 +64,81 @@ body {
 /* ==================== Header ==================== */
 .header {
     background: var(--glass-bg);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-bottom: 1px solid var(--glass-border);
-    box-shadow: 0 4px 30px var(--shadow);
+    box-shadow: var(--shadow-md);
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
 }
 
 .header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.8rem 2rem;
+    padding: 0.75rem 2rem;
+    height: 70px;
 }
 
 .logo {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.2rem;
 }
 
 .logo img {
-    height: 45px !important;
-    filter: drop-shadow(0 0 8px var(--accent-primary));
+    height: 48px !important;
+    filter: drop-shadow(0 0 12px var(--accent-primary));
+    transition: transform 0.3s ease;
+}
+
+.logo:hover img {
+    transform: rotate(10deg) scale(1.1);
 }
 
 .logo h1 {
     font-family: 'Amiri', serif;
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 700;
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-gold));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
 .header-controls {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
+    gap: 1rem;
 }
 
 .icon-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
     cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     color: var(--text-primary);
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
 }
 
 .icon-btn:hover {
-    background: var(--accent-primary);
     color: white;
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(16, 185, 129, 0.25);
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
     border-color: var(--accent-primary);
 }
+
 
 /* ==================== Main Container ==================== */
 .main-container {
@@ -320,12 +328,45 @@ body {
     transition: all 0.3s ease;
 }
 
+.surah-info-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
+
 .surah-meta {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
     display: flex;
-    gap: 1rem;
+    flex-wrap: wrap;
+    gap: 0.8rem;
 }
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.meta-item i {
+    font-size: 0.8rem;
+    color: var(--accent-primary);
+}
+
+.arrow-icon {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    transition: all 0.3s ease;
+}
+
+.surah-item:hover .arrow-icon {
+    opacity: 1;
+    color: white;
+    transform: translateX(-5px);
+}
+
 
 /* ==================== Content Area ==================== */
 .content {
@@ -418,33 +459,36 @@ body {
 /* The Main Mushaf Page Frame */
 .verses-wrapper {
     font-family: 'Scheherazade New', 'Amiri', serif;
-    font-size: 2.3rem;
-    line-height: 3.2;
+    font-size: 2.2rem;
+    line-height: 3.5;
     text-align: justify;
     color: #1a1a1a;
-    padding: 3.5rem 4.5rem;
+    padding: 4rem 5rem;
     background-color: #ffffff;
     direction: rtl;
     position: relative;
     min-height: 800px;
+    border-radius: 8px;
+    margin-top: 2rem;
 
-    /* The Decorative Blue Border from the Image */
-    border: 30px solid transparent;
-    border-image-source: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23ffffff' width='100' height='100'/%3E%3Cpath fill='%232c7a7b' d='M0 0h100v100H0z' opacity='.1'/%3E%3Cpath fill='%232c7a7b' d='M50 0c27.6 0 50 22.4 50 50s-22.4 50-50 50S0 77.6 0 50 22.4 0 50 0zm0 10C27.9 10 10 27.9 10 50s17.9 40 40 40 40-17.9 40-40-17.9-40-40-40z'/%3E%3Cpath fill='%232c7a7b' d='M50 20c16.6 0 30 13.4 30 30s-13.4 30-30 30-30-13.4-30-30 13.4-30 30-30z' opacity='.2'/%3E%3Ccircle fill='%232c7a7b' cx='50' cy='50' r='5'/%3E%3C/svg%3E");
+    /* The Decorative Border */
+    border: 25px solid transparent;
+    border-image-source: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23ffffff' width='100' height='100'/%3E%3Cpath fill='%23065f46' d='M0 0h100v100H0z' opacity='.05'/%3E%3Cpath fill='%23065f46' d='M50 0c27.6 0 50 22.4 50 50s-22.4 50-50 50S0 77.6 0 50 22.4 0 50 0zm0 10C27.9 10 10 27.9 10 50s17.9 40 40 40 40-17.9 40-40-17.9-40-40-40z'/%3E%3C/svg%3E");
     border-image-slice: 30;
     border-image-repeat: round;
 
-    outline: 2px solid #2c7a7b;
-    outline-offset: -15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    outline: 1px solid rgba(6, 95, 70, 0.2);
+    outline-offset: -12px;
+    box-shadow: var(--shadow-lg);
 }
 
 .dark-mode .verses-wrapper {
-    background-color: #1a1b26;
-    color: #c0caf5;
-    border-image-source: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%231a1b26' width='100' height='100'/%3E%3Cpath fill='%234fd1c5' d='M0 0h100v100H0z' opacity='.1'/%3E%3Cpath fill='%234fd1c5' d='M50 0c27.6 0 50 22.4 50 50s-22.4 50-50 50S0 77.6 0 50 22.4 0 50 0zm0 10C27.9 10 10 27.9 10 50s17.9 40 40 40 40-17.9 40-40-17.9-40-40-40z'/%3E%3Ccircle fill='%234fd1c5' cx='50' cy='50' r='5'/%3E%3C/svg%3E");
-    outline-color: #4fd1c5;
+    background-color: #111827;
+    color: #e5e7eb;
+    border-image-source: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23111827' width='100' height='100'/%3E%3Cpath fill='%2310b981' d='M50 0c27.6 0 50 22.4 50 50s-22.4 50-50 50S0 77.6 0 50 22.4 0 50 0zm0 10C27.9 10 10 27.9 10 50s17.9 40 40 40 40-17.9 40-40-17.9-40-40-40z'/%3E%3C/svg%3E");
+    outline-color: rgba(16, 185, 129, 0.2);
 }
+
 
 /* Surah Header Style from Image */
 .surah-header-mushaf {
@@ -669,32 +713,32 @@ body {
 }
 
 /* ==================== Audio Player ==================== */
+/* ==================== Audio Player ==================== */
 .audio-player {
     position: fixed;
     bottom: -200px;
-    right: 20px;
-    left: 20px;
+    right: 30px;
+    left: 30px;
     background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(25px) saturate(200%);
+    -webkit-backdrop-filter: blur(25px) saturate(200%);
     border: 1px solid var(--glass-border);
-    border-radius: 24px 24px 0 0;
-    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
-    padding: 1.5rem 2rem;
-    z-index: 200;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    margin: 0 auto;
+    border-radius: 30px;
+    box-shadow: var(--shadow-lg);
+    padding: 1.2rem 2.5rem;
+    z-index: 1000;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    margin: 0 auto 30px;
     max-width: 1200px;
 }
 
 .audio-player.active {
     bottom: 0;
-    transform: translateY(-10px);
 }
 
 .player-content {
     display: grid;
-    grid-template-columns: 250px 1fr 250px;
+    grid-template-columns: 280px 1fr 280px;
     gap: 2rem;
     align-items: center;
 }
@@ -702,104 +746,157 @@ body {
 .player-info {
     display: flex;
     align-items: center;
-    gap: 1.2rem;
+    gap: 1.5rem;
 }
 
 .player-info i {
-    font-size: 2.2rem;
+    font-size: 2.5rem;
     color: var(--accent-gold);
-    filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.4));
+    filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.5));
+}
+
+.player-text {
+    display: flex;
+    flex-direction: column;
 }
 
 .player-text span:first-child {
     font-family: 'Amiri', serif;
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     font-weight: 700;
     color: var(--text-primary);
 }
 
 .player-text span:last-child {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: var(--text-secondary);
+}
+
+.player-controls-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    align-items: center;
 }
 
 .player-controls {
     display: flex;
-    gap: 0.8rem;
-    justify-content: center;
+    gap: 1.2rem;
     align-items: center;
 }
 
 .control-btn {
     background: var(--bg-tertiary);
-    border: none;
-    width: 45px;
-    height: 45px;
+    border: 1px solid var(--border-color);
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     cursor: pointer;
     color: var(--text-primary);
     font-size: 1.1rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.control-btn.small-btn {
-    width: 38px;
-    height: 38px;
-    font-size: 0.9rem;
-    opacity: 0.8;
-}
-
-.control-btn.tiny-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 0.8rem;
-    opacity: 0.7;
-}
-
 .control-btn:hover {
     background: var(--accent-primary);
     color: white;
-    transform: scale(1.1);
-    opacity: 1;
-}
-
-.control-btn.active {
-    background: var(--accent-gold);
-    color: white;
-    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
-    opacity: 1;
+    transform: scale(1.15);
+    border-color: var(--accent-primary);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
 }
 
 .play-btn {
-    width: 55px;
-    height: 55px;
-    background: var(--accent-primary);
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
     color: white;
-    font-size: 1.4rem;
+    font-size: 1.6rem;
+    border: none;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
 }
 
-.speed-control {
-    margin-right: 10px;
+.player-progress {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 10px;
 }
 
-.speed-select {
+#progress-bar {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
     background: var(--bg-tertiary);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 0.3rem 0.5rem;
-    font-size: 0.85rem;
+    border-radius: 10px;
     cursor: pointer;
-    font-family: 'Cairo', sans-serif;
+    outline: none;
 }
 
-/* Marker Hover Effect */
-.verse-number:hover {
-    transform: scale(1.1);
+
+#progress-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
 }
+
+#progress-bar:hover::-webkit-slider-thumb {
+    transform: scale(1.3);
+}
+
+
+/* ==================== Toasts ==================== */
+.toast {
+    position: fixed;
+    top: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border);
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: var(--shadow-lg);
+    z-index: 2000;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+}
+
+.toast.active {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast i {
+    font-size: 1.2rem;
+    color: var(--accent-primary);
+}
+
+.toast-info i {
+    color: var(--accent-gold);
+}
+
+.toast span {
+    font-family: 'Cairo', sans-serif;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
 
 .dark-mode .verse-number::after {
     background: linear-gradient(135deg, #f1c40f, #fbbf24);

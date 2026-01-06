@@ -7,7 +7,24 @@ let bookmarks = JSON.parse(localStorage.getItem('quranBookmarks')) || [];
 let isPlaying = false;
 let isRepeatEnabled = false;
 
+// Toast Notification System
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('active'), 100);
+    setTimeout(() => {
+        toast.classList.remove('active');
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
 // ==================== DOM Elements ====================
+
 const elements = {
     surahList: document.getElementById('surah-list'),
     versesContainer: document.getElementById('verses-container'),
@@ -77,17 +94,19 @@ function displaySurahs(surahs) {
     elements.surahList.innerHTML = surahs.map(surah => `
         <div class="surah-item" data-number="${surah.number}" onclick="loadSurah(${surah.number})">
             <div class="surah-number">${surah.number}</div>
-            <div class="surah-details">
+            <div class="surah-info-card">
                 <div class="surah-name-ar">${surah.name}</div>
                 <div class="surah-meta">
-                    <span>${surah.englishName}</span>
-                    <span>${surah.numberOfAyahs} آية</span>
-                    <span>${surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</span>
+                    <span class="meta-item"><i class="fas fa-globe"></i> ${surah.englishName}</span>
+                    <span class="meta-item"><i class="fas fa-lines-leaning"></i> ${surah.numberOfAyahs} آية</span>
+                    <span class="meta-item"><i class="fas fa-kaaba"></i> ${surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</span>
                 </div>
             </div>
+            <i class="fas fa-chevron-left arrow-icon"></i>
         </div>
     `).join('');
 }
+
 
 // ==================== Load Surah ====================
 async function loadSurah(surahNumber) {
