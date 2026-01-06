@@ -42,7 +42,12 @@ const elements = {
     increaseFontBtn: document.getElementById('increase-font'),
     decreaseFontBtn: document.getElementById('decrease-font'),
     saveSurahBtn: document.getElementById('save-surah-main'),
-    lastReadBtn: document.getElementById('last-read-btn')
+    lastReadBtn: document.getElementById('last-read-btn'),
+    tafsirBtn: document.getElementById('tafsir-btn'),
+    tafsirModal: document.getElementById('tafsir-modal'),
+    tafsirSelect: document.getElementById('tafsir-select'),
+    tafsirContent: document.getElementById('tafsir-content'),
+    surahSearch: document.getElementById('surah-search')
 };
 
 let currentFontSize = parseFloat(localStorage.getItem('quranFontSize')) || 2.3;
@@ -130,9 +135,9 @@ function displayVerses() {
     const versesHTML = currentSurah.ayahs.map((ayah, index) => {
         const isBookmarked = bookmarks.some(b => b.surah === currentSurah.number && b.verse === ayah.numberInSurah);
 
-        return `<span class="verse-item ${isBookmarked ? 'bookmarked' : ''}" id="verse-${index}" data-verse-index="${index}" onclick="playVerse(${index})" title="انقر للاستماع">
+        return `<span class="verse-item ${isBookmarked ? 'bookmarked' : ''}" id="verse-${index}" data-verse-index="${index}" onclick="handleVerseClick(${index})" title="انقر للاستماع والتفسير">
             ${ayah.text}
-            <span class="verse-number" onclick="event.stopPropagation(); toggleBookmark(${currentSurah.number}, ${ayah.numberInSurah}, '${ayah.text.replace(/'/g, "\\'")}', '${currentSurah.name}')" title="${isBookmarked ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}">${ayah.numberInAyah}</span>
+            <span class="verse-number" onclick="event.stopPropagation(); toggleBookmark(${currentSurah.number}, ${ayah.numberInSurah}, '${ayah.text.replace(/'/g, "\\'")}', '${currentSurah.name}')" title="${isBookmarked ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}">${ayah.numberInSurah}</span>
         </span> `;
     }).join('');
 
@@ -273,15 +278,21 @@ elements.playbackSpeedSelect.addEventListener('change', (e) => {
     elements.audioElement.playbackRate = parseFloat(e.target.value);
 });
 
-elements.prevVerseBtn.addEventListener('click', () => {
+elements.prevVerseBtn.addEventListener('click', async () => {
     if (currentVerseIndex > 0) {
         playVerse(currentVerseIndex - 1);
+    } else if (currentSurah && currentSurah.number > 1) {
+        await loadSurah(currentSurah.number - 1);
+        playVerse(currentSurah.ayahs.length - 1);
     }
 });
 
-elements.nextVerseBtn.addEventListener('click', () => {
+elements.nextVerseBtn.addEventListener('click', async () => {
     if (currentVerseIndex < currentSurah.ayahs.length - 1) {
         playVerse(currentVerseIndex + 1);
+    } else if (currentSurah && currentSurah.number < 114) {
+        await loadSurah(currentSurah.number + 1);
+        playVerse(0);
     }
 });
 
@@ -296,12 +307,17 @@ elements.closePlayerBtn.addEventListener('click', () => {
 });
 
 // Auto play next verse when current ends
-elements.audioElement.addEventListener('ended', () => {
+elements.audioElement.addEventListener('ended', async () => {
     if (isRepeatEnabled) {
         elements.audioElement.currentTime = 0;
         elements.audioElement.play();
-    } else if (currentVerseIndex < currentSurah.ayahs.length - 1) {
+    } else if (currentSurah && currentVerseIndex < currentSurah.ayahs.length - 1) {
         playVerse(currentVerseIndex + 1);
+    } else if (currentSurah && currentSurah.number < 114) {
+        // MOVE TO NEXT SURAH
+        const nextSurahNum = currentSurah.number + 1;
+        await loadSurah(nextSurahNum);
+        playVerse(0);
     } else {
         elements.playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
         isPlaying = false;
@@ -549,9 +565,16 @@ document.querySelectorAll('.modal').forEach(modal => {
     });
 });
 
-// ==================== Mobile Menu ====================
+// ==================== Mobile/Drawer Menu ====================
 elements.menuToggle.addEventListener('click', () => {
     elements.sidebar.classList.toggle('active');
+});
+
+// Close drawer when clicking outside (on the main content)
+document.querySelector('.content').addEventListener('click', () => {
+    if (elements.sidebar.classList.contains('active')) {
+        elements.sidebar.classList.remove('active');
+    }
 });
 
 // ==================== Filter Tabs ====================
@@ -611,6 +634,20 @@ function setupEventListeners() {
         if (e.key === 'ArrowRight' && elements.audioPlayer.classList.contains('active')) {
             elements.prevVerseBtn.click();
         }
+        if (e.key === 'm' || e.key === 'M') {
+            elements.menuToggle.click();
+        }
+    });
+
+    // Surah Search
+    elements.surahSearch.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const filtered = allSurahs.filter(s =>
+            s.name.includes(query) ||
+            s.englishName.toLowerCase().includes(query) ||
+            s.number.toString() === query
+        );
+        displaySurahs(filtered);
     });
 }
 
@@ -621,3 +658,49 @@ function applyFontSize() {
     }
     localStorage.setItem('quranFontSize', currentFontSize);
 }
+
+// ==================== Tafsir Logic ====================
+function handleVerseClick(index) {
+    playVerse(index);
+    if (elements.tafsirModal.classList.contains('active')) {
+        loadTafsir(index);
+    }
+}
+
+async function loadTafsir(verseIndex) {
+    if (!currentSurah) return;
+
+    const ayah = currentSurah.ayahs[verseIndex];
+    const edition = elements.tafsirSelect.value;
+
+    elements.tafsirContent.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل التفسير...</p></div>';
+
+    try {
+        const response = await fetch(`https://api.alquran.cloud/v1/ayah/${ayah.number}/${edition}`);
+        const data = await response.json();
+
+        elements.tafsirContent.innerHTML = `
+            <div class="tafsir-header">
+                <div class="tafsir-verse-text">${ayah.text}</div>
+            </div>
+            <div class="tafsir-text">
+                ${data.data.text}
+            </div>
+            <div style="margin-top: 2rem; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+                المصدر: ${data.data.edition.name}
+            </div>
+        `;
+    } catch (error) {
+        console.error('Error loading tafsir:', error);
+        elements.tafsirContent.innerHTML = '<p class="error">حدث خطأ في تحميل التفسير. يرجى المحاولة مرة أخرى.</p>';
+    }
+}
+
+elements.tafsirBtn.addEventListener('click', () => {
+    elements.tafsirModal.classList.add('active');
+    loadTafsir(currentVerseIndex);
+});
+
+elements.tafsirSelect.addEventListener('change', () => {
+    loadTafsir(currentVerseIndex);
+});

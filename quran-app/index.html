@@ -39,6 +39,9 @@
                 <button id="theme-toggle" class="icon-btn" aria-label="تبديل الوضع">
                     <i class="fas fa-moon"></i>
                 </button>
+                <button id="tafsir-btn" class="icon-btn" title="التفسير والترجمة">
+                    <i class="fas fa-book-open-reader"></i>
+                </button>
                 <div class="font-controls">
                     <button id="decrease-font" class="icon-btn" title="تصغير الخط"><i class="fas fa-minus"></i></button>
                     <button id="increase-font" class="icon-btn" title="تكبير الخط"><i class="fas fa-plus"></i></button>
@@ -46,7 +49,7 @@
                 <button id="last-read-btn" class="icon-btn" title="متابعة القراءة">
                     <i class="fas fa-history"></i>
                 </button>
-                <button id="menu-toggle" class="icon-btn mobile-only" aria-label="القائمة">
+                <button id="menu-toggle" class="icon-btn" aria-label="القائمة">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
@@ -63,6 +66,10 @@
                     <button class="tab-btn active" data-filter="all">الكل</button>
                     <button class="tab-btn" data-filter="makkah">مكية</button>
                     <button class="tab-btn" data-filter="madinah">مدنية</button>
+                </div>
+                <div class="sidebar-search">
+                    <input type="text" id="surah-search" placeholder="ابحث عن سورة...">
+                    <i class="fas fa-search"></i>
                 </div>
             </div>
             <div class="surah-list" id="surah-list">
@@ -189,6 +196,32 @@
             <div class="modal-body">
                 <div class="bookmarks-list" id="bookmarks-list">
                     <p class="empty-state">لا توجد آيات محفوظة بعد</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tafsir Modal -->
+    <div class="modal" id="tafsir-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>التفسير والترجمة</h3>
+                <button class="close-modal" data-modal="tafsir-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="tafsir-options">
+                    <select id="tafsir-select" class="premium-select">
+                        <option value="ar.jalalayn">تفسير الجلالين</option>
+                        <option value="ar.muyassar">التفسير الميسر</option>
+                        <option value="en.sahih">English - Sahih International</option>
+                        <option value="fr.hamidullah">Français - Hamidullah</option>
+                        <option value="ur.ahmedali">اردو - Ahmed Ali</option>
+                    </select>
+                </div>
+                <div id="tafsir-content" class="tafsir-content">
+                    <p class="tafsir-hint">اختر آية لعرض تفسيرها</p>
                 </div>
             </div>
         </div>
