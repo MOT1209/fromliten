@@ -247,7 +247,11 @@ html {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 10px;
 }
+
 
 .craft-item {
     background: var(--slot-bg);

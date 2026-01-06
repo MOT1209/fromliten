@@ -7,11 +7,14 @@ console.log("Rust Survival Engine v2.5: Initializing with Collision Physics...")
 const CONFIG = {
     WORLD_SIZE: 250,
     TREE_COUNT: 45,
-    ROCK_COUNT: 35,
+    ROCK_COUNT: 25,
+    SULFUR_COUNT: 15,
+    BARREL_COUNT: 20,
     BUILD_DISTANCE: 6,
     INTERACT_DISTANCE: 3.5,
     PLAYER_SPEED: 80,
     FRICTION: 10.0,
+
     GRAVITY: 22.0,
     JUMP_FORCE: 8.5,
     PLAYER_RADIUS: 0.8 // Radius for collision
@@ -19,22 +22,77 @@ const CONFIG = {
 
 // ==================== STATE ====================
 const state = {
-    inventory: { wood: 0, stone: 0, iron: 0 },
-    stats: { health: 100, hunger: 100 },
+    inventory: [
+        { id: 'wood', count: 0 },
+        { id: 'stone', count: 0 },
+        { id: 'iron', count: 0 },
+        { id: 'sulfur', count: 0 },
+        { id: 'scrap', count: 0 }
+    ],
+    gear: { head: null, chest: null, legs: null, feet: null },
+    belt: Array(6).fill(null),
+    stats: { health: 100, hunger: 100, calories: 500, hydration: 500 },
     buildMode: false,
-    viewMode: 'first', // 'first' or 'third'
-    controls: {
-        forward: false,
-        backward: false,
-        left: false,
-        right: false,
-        jump: false,
-        canJump: false,
-        crouch: false
-    }
+    viewMode: 'first',
+    controls: { forward: false, backward: false, left: false, right: false, jump: false, canJump: false, crouch: false }
 };
 
+const ITEMS_DATA = {
+    // Resources
+    'wood': { name: 'Wood', icon: 'fa-tree', color: '#5d4037' },
+    'stone': { name: 'Stone', icon: 'fa-gem', color: '#757575' },
+    'iron': { name: 'Metal Ore', icon: 'fa-cube', color: '#90a4ae' },
+    'sulfur': { name: 'Sulfur Ore', icon: 'fa-flask', color: '#ffeb3b' },
+    'scrap': { name: 'Scrap', icon: 'fa-nut-bolt', color: '#bcaae1' },
+    // Components
+    'gear_comp': { name: 'Gears', icon: 'fa-gear', color: '#9e9e9e' },
+    'pipe': { name: 'Metal Pipe', icon: 'fa-water', color: '#b0bec5' },
+    'spring': { name: 'Spring', icon: 'fa-coil', color: '#cfd8dc' },
+    // Tools
+    'axe': { name: 'Hatchet', icon: 'fa-axe', recipe: { wood: 100, stone: 50 } },
+    'pickaxe': { name: 'Pickaxe', icon: 'fa-hammer-war', recipe: { wood: 50, stone: 100 } },
+    'hammer': { name: 'Hammer', icon: 'fa-hammer', recipe: { wood: 50, iron: 10 } },
+    'torch': { name: 'Torch', icon: 'fa-fire', recipe: { wood: 50 } },
+    // Weapons
+    'spear': { name: 'Wood Spear', icon: 'fa-pencil', recipe: { wood: 300 } },
+    'bow': { name: 'Hunting Bow', icon: 'fa-bow-arrow', recipe: { wood: 200 } },
+    'pistol': { name: 'Semi Pistol', icon: 'fa-gun', recipe: { iron: 100, pipe: 1 } },
+    'rifle': { name: 'Assault Rifle', icon: 'fa-jet-fighter', recipe: { iron: 250, spring: 2, pipe: 1 } },
+    'smg': { name: 'Custom SMG', icon: 'fa-shield', recipe: { iron: 150, spring: 1 } },
+    // Ammo
+    'arrow': { name: 'Arrows', icon: 'fa-location-arrow', recipe: { wood: 10 } },
+    'pistol_ammo': { name: 'Pistol Bullets', icon: 'fa-circle', recipe: { iron: 5, sulfur: 5 } },
+    'rifle_ammo': { name: 'Rifle Bullets', icon: 'fa-circle-dot', recipe: { iron: 10, sulfur: 10 } },
+    // Armor & Clothing
+    'helmet': { name: 'Metal Helmet', icon: 'fa-hat-cowboy', recipe: { iron: 50 } },
+    'armor': { name: 'Metal Chestplate', icon: 'fa-shirt', recipe: { iron: 100 } },
+    'clothing': { name: 'Pants', icon: 'fa-socks', recipe: { wood: 50 } },
+    'hazmat': { name: 'Hazmat Suit', icon: 'fa-user-ninja', recipe: { iron: 200, scrap: 50 } },
+    // Buidling
+    'foundation': { name: 'Foundation', icon: 'fa-square', recipe: { wood: 200 } },
+    'wall': { name: 'Wall', icon: 'fa-border-all', recipe: { wood: 100 } },
+    'door': { name: 'Wooden Door', icon: 'fa-door-closed', recipe: { wood: 300 } },
+    'lock': { name: 'Key Lock', icon: 'fa-lock', recipe: { iron: 100 } },
+    'ladder': { name: 'Wooden Ladder', icon: 'fa-ladder-water', recipe: { wood: 100 } },
+    // Devices
+    'workbench': { name: 'Workbench', icon: 'fa-table-list', recipe: { wood: 500, iron: 100 } },
+    'furnace': { name: 'Furnace', icon: 'fa-fire-burner', recipe: { stone: 200, wood: 50 } },
+    'generator': { name: 'Generator', icon: 'fa-bolt', recipe: { iron: 500, gear_comp: 2 } },
+    'battery': { name: 'Large Battery', icon: 'fa-battery-full', recipe: { iron: 200, scrap: 100 } },
+    // Food & Medical
+    'meat': { name: 'Cooked Meat', icon: 'fa-drumstick-bite', recipe: { wood: 10 } },
+    'water': { name: 'Water Jug', icon: 'fa-bottle-water', recipe: { iron: 10 } },
+    'syringe': { name: 'Medical Syringe', icon: 'fa-syringe', recipe: { iron: 20, scrap: 5 } },
+    'bandage': { name: 'Bandage', icon: 'fa-band-aid', recipe: { clothing: 1 } },
+    // Transport
+    'horse': { name: 'Horse Saddle', icon: 'fa-horse', recipe: { scrap: 100 } },
+    'boat': { name: 'Rowboat', icon: 'fa-ship', recipe: { wood: 500, scrap: 50 } },
+    'minicopter': { name: 'Minicopter', icon: 'fa-helicopter', recipe: { scrap: 750, iron: 500 } }
+};
+
+
 let playerMesh;
+
 
 
 const velocity = new THREE.Vector3();
@@ -150,24 +208,53 @@ try {
         collisionObjects.push(tree);
     }
 
-    // Rocks
+    // Rocks (Stone/Iron)
     const rockGeo = new THREE.DodecahedronGeometry(1.2, 0);
-    const stoneMat = new THREE.MeshStandardMaterial({ color: 0x6e7072 });
     for (let i = 0; i < CONFIG.ROCK_COUNT; i++) {
         const x = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
         const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
         const y = getTerrainHeight(x, z);
-        const rock = new THREE.Mesh(rockGeo, stoneMat);
+        const isIron = Math.random() > 0.7;
+        const rock = new THREE.Mesh(rockGeo, new THREE.MeshStandardMaterial({ color: isIron ? 0x90a4ae : 0x6e7072 }));
         rock.position.set(x, y + 0.5, z);
         rock.rotation.set(Math.random(), Math.random(), Math.random());
         const scale = 0.8 + Math.random();
         rock.scale.set(scale, scale, scale);
         rock.castShadow = true;
-        rock.userData = { type: 'rock', health: 5, radius: scale };
+        rock.userData = { type: isIron ? 'iron' : 'rock', health: 5, radius: scale };
         scene.add(rock);
         interactables.push(rock);
         collisionObjects.push(rock);
     }
+
+    // Sulfur Rocks (Yellow)
+    const sulfurMat = new THREE.MeshStandardMaterial({ color: 0xffeb3b, emissive: 0x444400, emissiveIntensity: 0.2 });
+    for (let i = 0; i < CONFIG.SULFUR_COUNT; i++) {
+        const x = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
+        const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
+        const rock = new THREE.Mesh(rockGeo, sulfurMat);
+        rock.position.set(x, getTerrainHeight(x, z) + 0.4, z);
+        rock.scale.set(0.7, 0.6, 0.7);
+        rock.userData = { type: 'sulfur', health: 5, radius: 0.6 };
+        scene.add(rock);
+        interactables.push(rock);
+        collisionObjects.push(rock);
+    }
+
+    // Barrels (Blue Cylinders)
+    const barrelGeo = new THREE.CylinderGeometry(0.4, 0.4, 1.2, 8);
+    const barrelMat = new THREE.MeshStandardMaterial({ color: 0x1e88e5 });
+    for (let i = 0; i < CONFIG.BARREL_COUNT; i++) {
+        const x = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 60);
+        const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 60);
+        const barrel = new THREE.Mesh(barrelGeo, barrelMat);
+        barrel.position.set(x, getTerrainHeight(x, z) + 0.6, z);
+        barrel.userData = { type: 'barrel', health: 3, radius: 0.5 };
+        scene.add(barrel);
+        interactables.push(barrel);
+        collisionObjects.push(barrel);
+    }
+
 
     function getTerrainHeight(x, z) {
         return Math.sin(x * 0.05) * Math.cos(z * 0.05) * 2.5;
@@ -181,6 +268,18 @@ try {
     scene.add(ghost);
 
     const builtObjects = [];
+
+    function getItemCount(id) {
+        const item = state.inventory.find(i => i.id === id);
+        return item ? item.count : 0;
+    }
+
+    function addItem(id, count) {
+        let item = state.inventory.find(i => i.id === id);
+        if (item) item.count += count;
+        else state.inventory.push({ id, count });
+        updateHUD();
+    }
 
     function updateGhost() {
         if (!state.buildMode) { ghost.visible = false; return; }
@@ -196,9 +295,10 @@ try {
                 Math.round(p.z + n.z * 0.5)
             );
             ghost.visible = true;
-            ghost.material.color.setHex(state.inventory.wood >= 10 ? 0x00ff00 : 0xff0000);
+            ghost.material.color.setHex(getItemCount('wood') >= 10 ? 0x00ff00 : 0xff0000);
         } else { ghost.visible = false; }
     }
+
 
     // ==================== COLLISION DETECTION ====================
     function checkCollisions(newPos) {
@@ -233,12 +333,21 @@ try {
 
     // ==================== HUD & SYSTEMS ====================
     function updateHUD() {
-        document.getElementById('wood-count').innerText = state.inventory.wood;
-        document.getElementById('stone-count').innerText = state.inventory.stone;
-        document.getElementById('iron-count').innerText = state.inventory.iron;
+        // Find counts from inventory array
+        const wood = getItemCount('wood');
+        const stone = getItemCount('stone');
+        const iron = getItemCount('iron');
+        const scrap = getItemCount('scrap');
+
+        document.getElementById('wood-count').innerText = wood;
+        document.getElementById('stone-count').innerText = stone;
+        document.getElementById('iron-count').innerText = iron;
+        // Optionally show scrap if needed, or just let inventory handle it
+
         document.getElementById('health-fill').style.width = state.stats.health + '%';
         document.getElementById('hunger-fill').style.width = state.stats.hunger + '%';
     }
+
 
     setInterval(() => {
         if (pointerControls.isLocked) {
@@ -251,14 +360,18 @@ try {
     const raycaster = new THREE.Raycaster();
     function performAction() {
         if (state.buildMode) {
-            if (ghost.visible && state.inventory.wood >= 10) {
+            if (ghost.visible && getItemCount('wood') >= 10) {
                 const b = new THREE.Mesh(buildGeo, new THREE.MeshStandardMaterial({ color: 0x6e4b2e }));
                 b.position.copy(ghost.position);
                 b.castShadow = true;
                 b.receiveShadow = true;
                 scene.add(b);
                 builtObjects.push(b);
-                state.inventory.wood -= 10;
+
+                // Subtract wood
+                const wood = state.inventory.find(i => i.id === 'wood');
+                if (wood) wood.count -= 10;
+
                 updateHUD();
             }
             return;
@@ -269,14 +382,24 @@ try {
         if (hits.length > 0 && hits[0].distance < CONFIG.INTERACT_DISTANCE) {
             let obj = hits[0].object;
             while (obj.parent !== scene) obj = obj.parent;
+
             obj.userData.health -= 1;
-            obj.position.x += 0.1;
-            setTimeout(() => obj.position.x -= 0.1, 50);
-            if (obj.userData.type === 'tree') state.inventory.wood += 5;
-            else {
-                state.inventory.stone += 3;
-                if (Math.random() > 0.8) state.inventory.iron += 1;
+            obj.position.x += 0.05;
+            setTimeout(() => obj.position.x -= 0.05, 50);
+
+            // Collect Resources
+            const type = obj.userData.type;
+            if (type === 'tree') addItem('wood', 7);
+            else if (type === 'rock') addItem('stone', 5);
+            else if (type === 'iron') addItem('iron', 5);
+            else if (type === 'sulfur') addItem('sulfur', 5);
+            else if (type === 'barrel') {
+                addItem('scrap', 2);
+                if (Math.random() > 0.7) addItem('gear_comp', 1);
+                if (Math.random() > 0.7) addItem('pipe', 1);
+                if (Math.random() > 0.7) addItem('spring', 1);
             }
+
             if (obj.userData.health <= 0) {
                 scene.remove(obj);
                 interactables.splice(interactables.indexOf(obj), 1);
@@ -285,6 +408,7 @@ try {
             updateHUD();
         }
     }
+
 
     // ==================== CONTROLS ====================
     window.addEventListener('keydown', (e) => {
@@ -313,15 +437,20 @@ try {
                 initPlayerPreview();
 
                 // Populate Main Inventory (24 slots)
-
                 const mainGrid = document.getElementById('main-inventory-grid');
                 mainGrid.innerHTML = '';
+                const itemsToDisplay = state.inventory.filter(i => i.count > 0);
+
                 for (let i = 0; i < 24; i++) {
                     const slot = document.createElement('div');
                     slot.className = 'inv-slot';
-                    if (i === 0 && state.inventory.wood > 0) slot.innerHTML = `<i class="fas fa-tree"></i><span class="slot-count">${state.inventory.wood}</span>`;
-                    if (i === 1 && state.inventory.stone > 0) slot.innerHTML = `<i class="fas fa-gem"></i><span class="slot-count">${state.inventory.stone}</span>`;
-                    if (i === 2 && state.inventory.iron > 0) slot.innerHTML = `<i class="fas fa-cube"></i><span class="slot-count">${state.inventory.iron}</span>`;
+                    if (itemsToDisplay[i]) {
+                        const itemData = ITEMS_DATA[itemsToDisplay[i].id];
+                        if (itemData) {
+                            slot.innerHTML = `<i class="fas ${itemData.icon}"></i><span class="slot-count">${itemsToDisplay[i].count}</span>`;
+                            slot.title = itemData.name;
+                        }
+                    }
                     mainGrid.appendChild(slot);
                 }
 
@@ -335,9 +464,49 @@ try {
                     if (i === 1) slot.innerHTML = `<i class="fas fa-hammer"></i>`;
                     beltGrid.appendChild(slot);
                 }
+
+                // Populate Crafting List
+                const craftList = document.querySelector('.crafting-list');
+                craftList.innerHTML = '';
+                Object.keys(ITEMS_DATA).forEach(id => {
+                    const item = ITEMS_DATA[id];
+                    if (item.recipe) {
+                        const div = document.createElement('div');
+                        div.className = 'craft-item';
+                        div.innerHTML = `<span>${item.name}</span><small>${Object.entries(item.recipe).map(([res, amt]) => `${amt} ${res}`).join(', ')}</small>`;
+                        div.onclick = () => craftItem(id);
+                        craftList.appendChild(div);
+                    }
+                });
             }
         }
     });
+
+    function craftItem(id) {
+        const item = ITEMS_DATA[id];
+        let canCraft = true;
+        for (let [res, amt] of Object.entries(item.recipe)) {
+            if (getItemCount(res) < amt) {
+                canCraft = false;
+                break;
+            }
+        }
+
+        if (canCraft) {
+            for (let [res, amt] of Object.entries(item.recipe)) {
+                const inventoryItem = state.inventory.find(i => i.id === res);
+                if (inventoryItem) inventoryItem.count -= amt;
+            }
+            addItem(id, 1);
+            console.log("Crafted: " + item.name);
+            // Re-render inventory
+            window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE' }));
+            window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE' }));
+        } else {
+            alert("Not enough resources to craft " + item.name);
+        }
+    }
+
 
 
     window.addEventListener('keyup', (e) => {
