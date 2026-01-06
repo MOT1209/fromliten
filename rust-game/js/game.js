@@ -257,7 +257,7 @@ try {
             velocity.y += CONFIG.JUMP_FORCE;
             state.controls.canJump = false;
         }
-        if (e.code === 'KeyE') {
+        if (e.code === 'KeyE' || e.code === 'Escape') {
             const inv = document.getElementById('inventory');
             if (inv.style.display === 'block') {
                 inv.style.display = 'none';
@@ -265,14 +265,33 @@ try {
             } else {
                 inv.style.display = 'block';
                 pointerControls.unlock();
-                document.getElementById('inventory-grid').innerHTML = `
-                    <div class="inventory-item">🪵 الخشب: ${state.inventory.wood}</div>
-                    <div class="inventory-item">🪨 الحجر: ${state.inventory.stone}</div>
-                    <div class="inventory-item">⚙️ الحديد: ${state.inventory.iron}</div>
-                `;
+
+                // Populate Main Inventory (24 slots)
+                const mainGrid = document.getElementById('main-inventory-grid');
+                mainGrid.innerHTML = '';
+                for (let i = 0; i < 24; i++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'inv-slot';
+                    if (i === 0 && state.inventory.wood > 0) slot.innerHTML = `<i class="fas fa-tree"></i><span class="slot-count">${state.inventory.wood}</span>`;
+                    if (i === 1 && state.inventory.stone > 0) slot.innerHTML = `<i class="fas fa-gem"></i><span class="slot-count">${state.inventory.stone}</span>`;
+                    if (i === 2 && state.inventory.iron > 0) slot.innerHTML = `<i class="fas fa-cube"></i><span class="slot-count">${state.inventory.iron}</span>`;
+                    mainGrid.appendChild(slot);
+                }
+
+                // Populate Belt (6 slots)
+                const beltGrid = document.getElementById('belt-inventory-grid');
+                beltGrid.innerHTML = '';
+                for (let i = 0; i < 6; i++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'inv-slot';
+                    if (i === 0) slot.innerHTML = `<i class="fas fa-hand-fist"></i>`;
+                    if (i === 1) slot.innerHTML = `<i class="fas fa-hammer"></i>`;
+                    beltGrid.appendChild(slot);
+                }
             }
         }
     });
+
 
     window.addEventListener('keyup', (e) => {
         if (e.code === 'KeyW') state.controls.forward = false;
