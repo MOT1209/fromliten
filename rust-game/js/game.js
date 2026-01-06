@@ -236,8 +236,9 @@ try {
             direction.x = Number(moveRight) - Number(moveLeft);
             direction.normalize();
 
-            if (moveForward || moveBackward) velocity.z -= direction.z * 400.0 * delta;
-            if (moveLeft || moveRight) velocity.x -= direction.x * 400.0 * delta;
+            if (moveForward || moveBackward) velocity.z -= direction.z * 150.0 * delta;
+            if (moveLeft || moveRight) velocity.x -= direction.x * 150.0 * delta;
+
 
             controls.moveRight(-velocity.x * delta);
             controls.moveForward(-velocity.z * delta);
