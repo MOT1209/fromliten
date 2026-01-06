@@ -313,19 +313,18 @@ try {
             if (state.controls.forward || state.controls.backward) velocity.z -= direction.z * CONFIG.PLAYER_SPEED * delta;
             if (state.controls.left || state.controls.right) velocity.x -= direction.x * CONFIG.PLAYER_SPEED * delta;
 
-            const moveStepX = -velocity.x * delta;
-            const moveStepZ = -velocity.z * delta;
+            // Use built-in methods for correct direction math
+            pointerControls.moveRight(-velocity.x * delta);
+            pointerControls.moveForward(-velocity.z * delta);
 
-            // Apply movement to a temporary vector to check for collisions
-            const nextX = camera.position.x + (Math.sin(camera.rotation.y) * moveStepZ + Math.cos(camera.rotation.y) * moveStepX);
-            const nextZ = camera.position.z + (Math.cos(camera.rotation.y) * moveStepZ - Math.sin(camera.rotation.y) * moveStepX);
-
-            const collisionPoint = { x: nextX, z: nextZ };
+            // Apply Collision Correction to the new position
+            const collisionPoint = { x: camera.position.x, z: camera.position.z };
             checkCollisions(collisionPoint);
 
             camera.position.x = collisionPoint.x;
             camera.position.z = collisionPoint.z;
             camera.position.y += (velocity.y * delta);
+
 
             const groundY = getTerrainHeight(camera.position.x, camera.position.z) + 1.6;
             if (camera.position.y < groundY) {
