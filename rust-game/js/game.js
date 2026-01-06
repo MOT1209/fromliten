@@ -250,69 +250,70 @@ try {
     window.addEventListener('keyup', (e) => {
         if (e.code === 'KeyW') state.controls.forward = false;
         if (e.code === 'KeyS') state.controls.backward = false;
-        if (e.code status === 'KeyA') state.controls.left = false;
-    if (e.code === 'KeyD') state.controls.right = false;
-});
+        if (e.code === 'KeyA') state.controls.left = false;
+        if (e.code === 'KeyD') state.controls.right = false;
+    });
 
-window.addEventListener('mousedown', (e) => {
-    if (!pointerControls.isLocked) return;
-    if (e.button === 0) performAction();
-    if (e.button === 2) {
-        state.buildMode = !state.buildMode;
-        document.getElementById('build-mode-hint').style.display = state.buildMode ? 'block' : 'none';
-    }
-});
 
-document.getElementById('start-button').onclick = () => pointerControls.lock();
-pointerControls.addEventListener('lock', () => document.getElementById('instructions').style.display = 'none');
-pointerControls.addEventListener('unlock', () => document.getElementById('instructions').style.display = 'flex');
-
-// ==================== ANIMATION LOOP ====================
-let lastTime = performance.now();
-function animate() {
-    requestAnimationFrame(animate);
-    const time = performance.now();
-    const delta = (time - lastTime) / 1000;
-
-    if (pointerControls.isLocked) {
-        velocity.x -= velocity.x * CONFIG.FRICTION * delta;
-        velocity.z -= velocity.z * CONFIG.FRICTION * delta;
-        velocity.y -= CONFIG.GRAVITY * delta;
-
-        direction.z = Number(state.controls.forward) - Number(state.controls.backward);
-        direction.x = Number(state.controls.right) - Number(state.controls.left);
-        direction.normalize();
-
-        if (state.controls.forward || state.controls.backward) velocity.z -= direction.z * CONFIG.PLAYER_SPEED * 10 * delta;
-        if (state.controls.left || state.controls.right) velocity.x -= direction.x * CONFIG.PLAYER_SPEED * 10 * delta;
-
-        pointerControls.moveRight(-velocity.x * delta);
-        pointerControls.moveForward(-velocity.z * delta);
-        camera.position.y += (velocity.y * delta);
-
-        const groundY = getTerrainHeight(camera.position.x, camera.position.z) + 1.6;
-        if (camera.position.y < groundY) {
-            velocity.y = 0;
-            camera.position.y = groundY;
-            state.controls.canJump = true;
+    window.addEventListener('mousedown', (e) => {
+        if (!pointerControls.isLocked) return;
+        if (e.button === 0) performAction();
+        if (e.button === 2) {
+            state.buildMode = !state.buildMode;
+            document.getElementById('build-mode-hint').style.display = state.buildMode ? 'block' : 'none';
         }
-        updateGhost();
+    });
+
+    document.getElementById('start-button').onclick = () => pointerControls.lock();
+    pointerControls.addEventListener('lock', () => document.getElementById('instructions').style.display = 'none');
+    pointerControls.addEventListener('unlock', () => document.getElementById('instructions').style.display = 'flex');
+
+    // ==================== ANIMATION LOOP ====================
+    let lastTime = performance.now();
+    function animate() {
+        requestAnimationFrame(animate);
+        const time = performance.now();
+        const delta = (time - lastTime) / 1000;
+
+        if (pointerControls.isLocked) {
+            velocity.x -= velocity.x * CONFIG.FRICTION * delta;
+            velocity.z -= velocity.z * CONFIG.FRICTION * delta;
+            velocity.y -= CONFIG.GRAVITY * delta;
+
+            direction.z = Number(state.controls.forward) - Number(state.controls.backward);
+            direction.x = Number(state.controls.right) - Number(state.controls.left);
+            direction.normalize();
+
+            if (state.controls.forward || state.controls.backward) velocity.z -= direction.z * CONFIG.PLAYER_SPEED * 10 * delta;
+            if (state.controls.left || state.controls.right) velocity.x -= direction.x * CONFIG.PLAYER_SPEED * 10 * delta;
+
+            pointerControls.moveRight(-velocity.x * delta);
+            pointerControls.moveForward(-velocity.z * delta);
+            camera.position.y += (velocity.y * delta);
+
+            const groundY = getTerrainHeight(camera.position.x, camera.position.z) + 1.6;
+            if (camera.position.y < groundY) {
+                velocity.y = 0;
+                camera.position.y = groundY;
+                state.controls.canJump = true;
+            }
+            updateGhost();
+        }
+
+        renderer.render(scene, camera);
+        lastTime = time;
     }
 
-    renderer.render(scene, camera);
-    lastTime = time;
-}
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
 
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-animate();
-setTimeout(() => {
-    document.getElementById('loading-screen').style.display = 'none';
-}, 1500);
+    animate();
+    setTimeout(() => {
+        document.getElementById('loading-screen').style.display = 'none';
+    }, 1500);
 
 } catch (err) {
     console.error("Critical Failure:", err);
