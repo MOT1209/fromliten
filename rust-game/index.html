@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rust Survival 3D</title>
+    <title>Rust Survival 3D - Ultra</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="importmap">
@@ -20,35 +20,65 @@
 <body>
     <div id="loading-screen">
         <div class="loader"></div>
-        <h1>Generating World...</h1>
+        <h1>Loading Pro-Survival World...</h1>
+        <p id="loading-status">Initializing Game Engine...</p>
     </div>
 
+    <!-- HUD -->
     <div id="hud">
-        <div class="stats">
-            <div class="stat-item"><i class="fas fa-tree"></i> Wood: <span id="wood-count">0</span></div>
-            <div class="stat-item"><i class="fas fa-gem"></i> Stone: <span id="stone-count">0</span></div>
-            <div class="stat-item"><i class="fas fa-cube"></i> Iron: <span id="iron-count">0</span></div>
+        <div class="top-left">
+            <div class="stat-group">
+                <div class="stat-bar health">
+                    <div class="bar-fill" id="health-fill" style="width: 100%;"></div>
+                    <span class="bar-label"><i class="fas fa-heart"></i> Health</span>
+                </div>
+                <div class="stat-bar hunger">
+                    <div class="bar-fill" id="hunger-fill" style="width: 100%;"></div>
+                    <span class="bar-label"><i class="fas fa-utensils"></i> Hunger</span>
+                </div>
+            </div>
         </div>
+
+        <div class="stats">
+            <div class="stat-item wood"><i class="fas fa-tree"></i> <span id="wood-count">0</span></div>
+            <div class="stat-item stone"><i class="fas fa-gem"></i> <span id="stone-count">0</span></div>
+            <div class="stat-item iron"><i class="fas fa-cube"></i> <span id="iron-count">0</span></div>
+        </div>
+
         <div id="crosshair"></div>
+
         <div id="interaction-hint">Press LMB to interact</div>
-        <div id="build-mode-hint" style="display: none;">Build Mode: Active (RMB to exit)</div>
+        <div id="build-mode-hint">Build Mode: Active (RMB to exit)</div>
+
+        <div class="hotbar">
+            <div class="hotbar-slot active" id="slot-1"><i class="fas fa-hand-fist"></i></div>
+            <div class="hotbar-slot" id="slot-2"><i class="fas fa-axe"></i></div>
+            <div class="hotbar-slot" id="slot-3"><i class="fas fa-hammer"></i></div>
+        </div>
     </div>
 
+    <!-- Inventory -->
     <div id="inventory">
-        <h2>Inventory</h2>
+        <h2>Backpack</h2>
         <div class="inventory-grid" id="inventory-grid"></div>
-        <div class="inventory-hint">Press 'E' to Close</div>
+        <div class="inventory-hint">Press 'E' to Resume Survival</div>
     </div>
 
+    <!-- Instructions Overlay -->
     <div id="instructions">
         <h1>RUST SURVIVAL 3D</h1>
-        <p>W, A, S, D - Move | SPACE - Jump | CTRL - Crouch</p>
-        <p>Mouse - Look | LMB - Collect/Build | RMB - Build Mode (Pick/Exit)</p>
-        <p>E - Inventory | ESC - Pause</p>
+        <div class="controls-guide">
+            <p><span>W A S D</span> Move | <span>SPACE</span> Jump | <span>CTRL</span> Crouch</p>
+            <p><span>LMB</span> Action | <span>RMB</span> Build Menu | <span>E</span> Inventory</p>
+        </div>
         <button id="start-button">START SURVIVAL</button>
+        <p style="margin-top: 20px; font-size: 0.8rem; opacity: 0.5;">Version 2.0 - Improved Stability & Realism</p>
     </div>
 
-    <script type="module" src="js/game.js"></script>
+    <!-- Cache Busting Script Link -->
+    <script type="module">
+        import './js/game.js?v=2.1';
+    </script>
 </body>
 
 </html>

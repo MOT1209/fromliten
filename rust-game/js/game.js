@@ -1,29 +1,36 @@
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
-console.log("Game Engine: Initializing...");
+console.log("Rust Survival Engine v2.1: Initializing...");
 
 // ==================== CONFIGURATION ====================
-const WORLD_SIZE = 200;
-const TREE_COUNT = 50;
-const ROCK_COUNT = 40;
-const BUILD_DISTANCE = 5;
-const INTERACT_DISTANCE = 3;
-
-// ==================== STATE ====================
-const inventory = {
-    wood: 0,
-    stone: 0,
-    iron: 0
+const CONFIG = {
+    WORLD_SIZE: 250,
+    TREE_COUNT: 45,
+    ROCK_COUNT: 35,
+    BUILD_DISTANCE: 6,
+    INTERACT_DISTANCE: 3.5,
+    PLAYER_SPEED: 70, // Fixed: Drastically reduced for realism
+    FRICTION: 8.0,
+    GRAVITY: 20.0,
+    JUMP_FORCE: 8.0
 };
 
-let buildMode = false;
-let moveForward = false;
-let moveBackward = false;
-let moveLeft = false;
-let moveRight = false;
-let canJump = false;
-let isCrouching = false;
+// ==================== STATE ====================
+const state = {
+    inventory: { wood: 0, stone: 0, iron: 0 },
+    stats: { health: 100, hunger: 100 },
+    buildMode: false,
+    controls: {
+        forward: false,
+        backward: false,
+        left: false,
+        right: false,
+        jump: false,
+        canJump: false,
+        crouch: false
+    }
+};
 
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
@@ -31,135 +38,179 @@ const direction = new THREE.Vector3();
 // ==================== SCENE SETUP ====================
 try {
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87ceeb); // Sky blue
-    scene.fog = new THREE.Fog(0x87ceeb, 0, 150);
+    scene.background = new THREE.Color(0xa3d1ff);
+    scene.fog = new THREE.FogExp2(0xa3d1ff, 0.008);
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.y = 1.6;
-
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
 
-    const controls = new PointerLockControls(camera, document.body);
+    const pointerControls = new PointerLockControls(camera, document.body);
 
-    // ==================== LIGHTING ====================
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // ==================== LIGHTING (Day/Night Base) ====================
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    sunLight.position.set(50, 100, 50);
-    sunLight.castShadow = true;
-    sunLight.shadow.mapSize.width = 1024;
-    sunLight.shadow.mapSize.height = 1024;
-    scene.add(sunLight);
+    const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+    sun.position.set(50, 100, 20);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(1024, 1024);
+    sun.shadow.camera.left = -100;
+    sun.shadow.camera.right = 100;
+    sun.shadow.camera.top = 100;
+    sun.shadow.camera.bottom = -100;
+    scene.add(sun);
 
-    // ==================== WORLD GENERATION ====================
-    const groundGeometry = new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE, 32, 32);
-    groundGeometry.rotateX(-Math.PI / 2);
+    // ==================== WORLD OBJECTS ====================
+    const groundGeo = new THREE.PlaneGeometry(CONFIG.WORLD_SIZE, CONFIG.WORLD_SIZE, 40, 40);
+    groundGeo.rotateX(-Math.PI / 2);
 
-    const grassMaterial = new THREE.MeshStandardMaterial({ color: 0x348c31, roughness: 0.8 });
-    const ground = new THREE.Mesh(groundGeometry, grassMaterial);
+    // Slight noise to terrain
+    const pos = groundGeo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getZ(i);
+        pos.setY(i, Math.sin(x * 0.05) * Math.cos(y * 0.05) * 2.5);
+    }
+    groundGeo.computeVertexNormals();
+
+    const grassMat = new THREE.MeshStandardMaterial({ color: 0x477033, roughness: 0.9 });
+    const ground = new THREE.Mesh(groundGeo, grassMat);
     ground.receiveShadow = true;
     scene.add(ground);
 
     const interactables = [];
-    const trees = [];
-    const rocks = [];
 
-    // Tree/Rock logic
-    const treeTrunkGeometry = new THREE.CylinderGeometry(0.2, 0.3, 2, 8);
-    const treeLeavesGeometry = new THREE.ConeGeometry(1.2, 3, 8);
-    const woodMaterial = new THREE.MeshStandardMaterial({ color: 0x5d4037 });
-    const leafMaterial = new THREE.MeshStandardMaterial({ color: 0x2e7d32 });
-    const rockGeometry = new THREE.DodecahedronGeometry(1, 0);
-    const stoneMaterial = new THREE.MeshStandardMaterial({ color: 0x757575 });
+    // Forest Generation
+    const trunkGeo = new THREE.CylinderGeometry(0.2, 0.35, 2.5, 8);
+    const leavesGeo = new THREE.DodecahedronGeometry(1.5, 1);
+    const woodMat = new THREE.MeshStandardMaterial({ color: 0x5d4037 });
+    const leafMat = new THREE.MeshStandardMaterial({ color: 0x244a26 });
 
-    function generateEnvironment() {
-        for (let i = 0; i < TREE_COUNT; i++) {
-            const x = (Math.random() - 0.5) * (WORLD_SIZE - 20);
-            const z = (Math.random() - 0.5) * (WORLD_SIZE - 20);
-            const trunk = new THREE.Mesh(treeTrunkGeometry, woodMaterial);
-            trunk.position.set(x, 1, z);
-            trunk.castShadow = true;
-            trunk.userData = { type: 'tree', health: 3 };
-            const leaves = new THREE.Mesh(treeLeavesGeometry, leafMaterial);
-            leaves.position.set(0, 2, 0);
-            trunk.add(leaves);
-            scene.add(trunk);
-            interactables.push(trunk);
-        }
+    for (let i = 0; i < CONFIG.TREE_COUNT; i++) {
+        const x = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
+        const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
+        const tree = new THREE.Group();
 
-        for (let i = 0; i < ROCK_COUNT; i++) {
-            const x = (Math.random() - 0.5) * (WORLD_SIZE - 20);
-            const z = (Math.random() - 0.5) * (WORLD_SIZE - 20);
-            const rock = new THREE.Mesh(rockGeometry, stoneMaterial);
-            rock.position.set(x, 0.5, z);
-            rock.scale.set(Math.random() + 0.5, Math.random() + 0.5, Math.random() + 0.5);
-            rock.castShadow = true;
-            rock.userData = { type: 'rock', health: 4 };
-            scene.add(rock);
-            interactables.push(rock);
-        }
+        const trunk = new THREE.Mesh(trunkGeo, woodMat);
+        trunk.position.y = 1.25;
+        trunk.castShadow = true;
+        tree.add(trunk);
+
+        const leaves = new THREE.Mesh(leavesGeo, leafMat);
+        leaves.position.y = 3;
+        leaves.castShadow = true;
+        tree.add(leaves);
+
+        tree.position.set(x, getTerrainHeight(x, z), z);
+        tree.userData = { type: 'tree', health: 4 };
+        scene.add(tree);
+        interactables.push(tree);
     }
 
-    generateEnvironment();
+    // Rocks
+    const rockGeo = new THREE.DodecahedronGeometry(1.2, 0);
+    const stoneMat = new THREE.MeshStandardMaterial({ color: 0x6e7072, roughness: 0.8 });
+    for (let i = 0; i < CONFIG.ROCK_COUNT; i++) {
+        const x = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
+        const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
+        const rock = new THREE.Mesh(rockGeo, stoneMat);
+        rock.position.set(x, getTerrainHeight(x, z) + 0.5, z);
+        rock.rotation.set(Math.random(), Math.random(), Math.random());
+        rock.scale.set(0.8 + Math.random(), 0.5 + Math.random(), 0.8 + Math.random());
+        rock.castShadow = true;
+        rock.userData = { type: 'rock', health: 5 };
+        scene.add(rock);
+        interactables.push(rock);
+    }
+
+    function getTerrainHeight(x, z) {
+        return Math.sin(x * 0.05) * Math.cos(z * 0.05) * 2.5;
+    }
 
     // ==================== BUILDING ====================
-    const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-    const ghostMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
-    const ghostBlock = new THREE.Mesh(boxGeometry, ghostMaterial);
-    ghostBlock.visible = false;
-    scene.add(ghostBlock);
+    const buildGeo = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+    const ghostMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.4 });
+    const ghost = new THREE.Mesh(buildGeo, ghostMat);
+    ghost.visible = false;
+    scene.add(ghost);
 
-    const blocks = [];
+    const builtObjects = [];
 
-    function updateGhostBlock() {
-        if (!buildMode) { ghostBlock.visible = false; return; }
-        const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-        const intersects = raycaster.intersectObjects([ground, ...blocks]);
-        if (intersects.length > 0 && intersects[0].distance < BUILD_DISTANCE) {
-            const point = intersects[0].point;
-            const face = intersects[0].face;
-            ghostBlock.position.set(
-                Math.round(point.x + face.normal.x * 0.1),
-                Math.round(point.y + face.normal.y * 0.1),
-                Math.round(point.z + face.normal.z * 0.1)
+    function updateGhost() {
+        if (!state.buildMode) { ghost.visible = false; return; }
+        const r = new THREE.Raycaster();
+        r.setFromCamera(new THREE.Vector2(0, 0), camera);
+        const hit = r.intersectObjects([ground, ...builtObjects]);
+        if (hit.length > 0 && hit[0].distance < CONFIG.BUILD_DISTANCE) {
+            const p = hit[0].point;
+            const n = hit[0].face.normal;
+            ghost.position.set(
+                Math.round(p.x + n.x * 0.5),
+                Math.round(p.y + n.y * 0.5),
+                Math.round(p.z + n.z * 0.5)
             );
-            ghostBlock.visible = true;
+            ghost.visible = true;
+            ghost.material.color.setHex(state.inventory.wood >= 10 ? 0x00ff00 : 0xff0000);
         } else {
-            ghostBlock.visible = false;
+            ghost.visible = false;
         }
     }
 
-    function placeBlock() {
-        if (!buildMode || !ghostBlock.visible || inventory.wood < 5) return;
-        const block = new THREE.Mesh(boxGeometry, new THREE.MeshStandardMaterial({ color: 0x8b4513 }));
-        block.position.copy(ghostBlock.position);
-        block.castShadow = true;
-        scene.add(block);
-        blocks.push(block);
-        inventory.wood -= 5;
-        updateHUD();
+    // ==================== SYSTEMS ====================
+    function updateHUD() {
+        document.getElementById('wood-count').innerText = state.inventory.wood;
+        document.getElementById('stone-count').innerText = state.inventory.stone;
+        document.getElementById('iron-count').innerText = state.inventory.iron;
+        document.getElementById('health-fill').style.width = state.stats.health + '%';
+        document.getElementById('hunger-fill').style.width = state.stats.hunger + '%';
     }
 
-    // ==================== INTERACTION ====================
-    const raycaster = new THREE.Raycaster();
-    const interactionHint = document.getElementById('interaction-hint');
+    // Survival Decay
+    setInterval(() => {
+        if (pointerControls.isLocked) {
+            state.stats.hunger = Math.max(0, state.stats.hunger - 0.5);
+            if (state.stats.hunger <= 0) state.stats.health = Math.max(0, state.stats.health - 1);
+            updateHUD();
+        }
+    }, 2000);
 
-    function interact() {
-        if (buildMode) { placeBlock(); return; }
+    const raycaster = new THREE.Raycaster();
+    function performAction() {
+        if (state.buildMode) {
+            if (ghost.visible && state.inventory.wood >= 10) {
+                const b = new THREE.Mesh(buildGeo, new THREE.MeshStandardMaterial({ color: 0x6e4b2e }));
+                b.position.copy(ghost.position);
+                b.castShadow = true;
+                b.receiveShadow = true;
+                scene.add(b);
+                builtObjects.push(b);
+                state.inventory.wood -= 10;
+                updateHUD();
+            }
+            return;
+        }
+
         raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-        const intersects = raycaster.intersectObjects(interactables);
-        if (intersects.length > 0 && intersects[0].distance < INTERACT_DISTANCE) {
-            const obj = intersects[0].object;
+        const hits = raycaster.intersectObjects(interactables, true);
+        if (hits.length > 0 && hits[0].distance < CONFIG.INTERACT_DISTANCE) {
+            let obj = hits[0].object;
+            while (obj.parent !== scene) obj = obj.parent;
+
             obj.userData.health -= 1;
-            if (obj.userData.type === 'tree') inventory.wood += 5;
-            else inventory.stone += 5;
+            // Visual Shake
+            obj.position.x += 0.1;
+            setTimeout(() => obj.position.x -= 0.1, 50);
+
+            if (obj.userData.type === 'tree') state.inventory.wood += 5;
+            else {
+                state.inventory.stone += 3;
+                if (Math.random() > 0.8) state.inventory.iron += 1;
+            }
 
             if (obj.userData.health <= 0) {
                 scene.remove(obj);
@@ -169,106 +220,101 @@ try {
         }
     }
 
-    function updateHUD() {
-        document.getElementById('wood-count').textContent = inventory.wood;
-        document.getElementById('stone-count').textContent = inventory.stone;
-        document.getElementById('iron-count').textContent = inventory.iron;
-    }
-
     // ==================== CONTROLS ====================
-    document.addEventListener('keydown', (e) => {
-        if (e.code === 'KeyW') moveForward = true;
-        if (e.code === 'KeyS') moveBackward = true;
-        if (e.code === 'KeyA') moveLeft = true;
-        if (e.code === 'KeyD') moveRight = true;
-        if (e.code === 'Space' && canJump) { velocity.y += 5; canJump = false; }
-        if (e.code === 'KeyE') toggleInventory();
-    });
-
-    document.addEventListener('keyup', (e) => {
-        if (e.code === 'KeyW') moveForward = false;
-        if (e.code === 'KeyS') moveBackward = false;
-        if (e.code === 'KeyA') moveLeft = false;
-        if (e.code === 'KeyD') moveRight = false;
-    });
-
-    document.addEventListener('mousedown', (e) => {
-        if (!controls.isLocked) return;
-        if (e.button === 0) interact();
-        if (e.button === 2) {
-            buildMode = !buildMode;
-            document.getElementById('build-mode-hint').style.display = buildMode ? 'block' : 'none';
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'KeyW') state.controls.forward = true;
+        if (e.code === 'KeyS') state.controls.backward = true;
+        if (e.code === 'KeyA') state.controls.left = true;
+        if (e.code === 'KeyD') state.controls.right = true;
+        if (e.code === 'Space' && state.controls.canJump) {
+            velocity.y += CONFIG.JUMP_FORCE;
+            state.controls.canJump = false;
         }
-    });
-
-    document.addEventListener('contextmenu', e => e.preventDefault());
-
-    document.getElementById('start-button').onclick = () => controls.lock();
-    controls.addEventListener('lock', () => document.getElementById('instructions').style.display = 'none');
-    controls.addEventListener('unlock', () => document.getElementById('instructions').style.display = 'flex');
-
-    function toggleInventory() {
-        const inv = document.getElementById('inventory');
-        if (inv.style.display === 'block') {
-            inv.style.display = 'none';
-            controls.lock();
-        } else {
-            inv.style.display = 'block';
-            controls.unlock();
-            const grid = document.getElementById('inventory-grid');
-            grid.innerHTML = `<div>Wood: ${inventory.wood}</div><div>Stone: ${inventory.stone}</div>`;
-        }
-    }
-
-    // ==================== LOOP ====================
-    let lastTime = performance.now();
-    function animate() {
-        requestAnimationFrame(animate);
-        const time = performance.now();
-        const delta = (time - lastTime) / 1000;
-
-        if (controls.isLocked) {
-            velocity.x -= velocity.x * 10.0 * delta;
-            velocity.z -= velocity.z * 10.0 * delta;
-            velocity.y -= 9.8 * 2.0 * delta;
-
-            direction.z = Number(moveForward) - Number(moveBackward);
-            direction.x = Number(moveRight) - Number(moveLeft);
-            direction.normalize();
-
-            if (moveForward || moveBackward) velocity.z -= direction.z * 150.0 * delta;
-            if (moveLeft || moveRight) velocity.x -= direction.x * 150.0 * delta;
-
-
-            controls.moveRight(-velocity.x * delta);
-            controls.moveForward(-velocity.z * delta);
-            camera.position.y += (velocity.y * delta);
-
-            if (camera.position.y < 1.6) {
-                velocity.y = 0;
-                camera.position.y = 1.6;
-                canJump = true;
+        if (e.code === 'KeyE') {
+            const inv = document.getElementById('inventory');
+            if (inv.style.display === 'block') {
+                inv.style.display = 'none';
+                pointerControls.lock();
+            } else {
+                inv.style.display = 'block';
+                pointerControls.unlock();
+                document.getElementById('inventory-grid').innerHTML = `
+                    <div class="inventory-item">🪵 Wood: ${state.inventory.wood}</div>
+                    <div class="inventory-item">🪨 Stone: ${state.inventory.stone}</div>
+                    <div class="inventory-item">⚙️ Iron: ${state.inventory.iron}</div>
+                `;
             }
-            updateGhostBlock();
         }
-        renderer.render(scene, camera);
-        lastTime = time;
-    }
-
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // START
-    setTimeout(() => {
-        document.getElementById('loading-screen').style.display = 'none';
-        animate();
-        console.log("Game Engine: Started Successfully");
-    }, 1000);
+    window.addEventListener('keyup', (e) => {
+        if (e.code === 'KeyW') state.controls.forward = false;
+        if (e.code === 'KeyS') state.controls.backward = false;
+        if (e.code status === 'KeyA') state.controls.left = false;
+    if (e.code === 'KeyD') state.controls.right = false;
+});
+
+window.addEventListener('mousedown', (e) => {
+    if (!pointerControls.isLocked) return;
+    if (e.button === 0) performAction();
+    if (e.button === 2) {
+        state.buildMode = !state.buildMode;
+        document.getElementById('build-mode-hint').style.display = state.buildMode ? 'block' : 'none';
+    }
+});
+
+document.getElementById('start-button').onclick = () => pointerControls.lock();
+pointerControls.addEventListener('lock', () => document.getElementById('instructions').style.display = 'none');
+pointerControls.addEventListener('unlock', () => document.getElementById('instructions').style.display = 'flex');
+
+// ==================== ANIMATION LOOP ====================
+let lastTime = performance.now();
+function animate() {
+    requestAnimationFrame(animate);
+    const time = performance.now();
+    const delta = (time - lastTime) / 1000;
+
+    if (pointerControls.isLocked) {
+        velocity.x -= velocity.x * CONFIG.FRICTION * delta;
+        velocity.z -= velocity.z * CONFIG.FRICTION * delta;
+        velocity.y -= CONFIG.GRAVITY * delta;
+
+        direction.z = Number(state.controls.forward) - Number(state.controls.backward);
+        direction.x = Number(state.controls.right) - Number(state.controls.left);
+        direction.normalize();
+
+        if (state.controls.forward || state.controls.backward) velocity.z -= direction.z * CONFIG.PLAYER_SPEED * 10 * delta;
+        if (state.controls.left || state.controls.right) velocity.x -= direction.x * CONFIG.PLAYER_SPEED * 10 * delta;
+
+        pointerControls.moveRight(-velocity.x * delta);
+        pointerControls.moveForward(-velocity.z * delta);
+        camera.position.y += (velocity.y * delta);
+
+        const groundY = getTerrainHeight(camera.position.x, camera.position.z) + 1.6;
+        if (camera.position.y < groundY) {
+            velocity.y = 0;
+            camera.position.y = groundY;
+            state.controls.canJump = true;
+        }
+        updateGhost();
+    }
+
+    renderer.render(scene, camera);
+    lastTime = time;
+}
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+setTimeout(() => {
+    document.getElementById('loading-screen').style.display = 'none';
+}, 1500);
 
 } catch (err) {
-    console.error("Game Initialization Failed:", err);
-    alert("Full Error: " + err.message);
+    console.error("Critical Failure:", err);
+    alert("Error initializing survival engine: " + err.message);
 }
