@@ -380,6 +380,55 @@ try {
             </div>`;
     }
 
+    function initInventoryTabs() {
+        const tabs = document.querySelectorAll('.tab-item');
+        tabs.forEach(tab => {
+            tab.onclick = () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const target = tab.dataset.tab;
+                const cPane = document.getElementById('crafting-pane');
+                const iPane = document.getElementById('inventory-pane');
+                if (cPane) cPane.classList.toggle('active', target === 'crafting');
+                if (iPane) iPane.classList.toggle('active', target === 'inventory');
+                if (target === 'inventory') renderInventoryGrid();
+                else renderCraftingGrid();
+                initPlayerPreview();
+            };
+        });
+
+        const cats = document.querySelectorAll('.category-item');
+        cats.forEach(c => {
+            c.onclick = () => {
+                cats.forEach(k => k.classList.remove('active'));
+                c.classList.add('active');
+                state.selectedCategory = c.dataset.category;
+                renderCraftingGrid();
+            };
+        });
+
+        const search = document.getElementById('item-search');
+        if (search) search.oninput = () => renderCraftingGrid();
+    }
+
+    function renderInventoryGrid() {
+        const grid = document.getElementById('player-inventory-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        for (let i = 0; i < 30; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'inv-grid-slot';
+            const item = state.inventory[i];
+            if (item && item.count > 0) {
+                const data = ITEMS_DATA[item.id];
+                if (data) {
+                    slot.innerHTML = `<i class="fas ${data.icon}" style="color:${data.color}; font-size: 1.2rem;"></i><span style="position:absolute;bottom:2px;right:4px;font-size:0.65rem;font-weight:900;color:#fff;">${item.count}</span>`;
+                }
+            }
+            grid.appendChild(slot);
+        }
+    }
+
     window.updateCraftQty = (val) => { state.craftQty = Math.max(1, state.craftQty + val); if (state.selectedItem) showCraftingDetail(state.selectedItem); };
     window.performCraft = (id) => {
         const item = ITEMS_DATA[id];
@@ -403,6 +452,7 @@ try {
         }
     }
 
+
     // Input Listeners
     window.addEventListener('keydown', (e) => {
         if (document.activeElement.tagName === 'INPUT') return;
@@ -419,6 +469,7 @@ try {
                 inv.style.display = 'flex';
                 pointerControls.unlock();
                 renderCraftingGrid();
+                renderInventoryGrid();
                 renderBelt();
                 initPlayerPreview();
             }
@@ -498,6 +549,7 @@ try {
     });
 
     animate();
+    initInventoryTabs();
     setTimeout(() => {
         const loader = document.getElementById('loading-screen');
         if (loader) loader.style.display = 'none';
