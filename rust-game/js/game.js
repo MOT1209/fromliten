@@ -41,68 +41,50 @@ const state = {
 };
 
 const ITEMS_DATA = {
-    // Resources
-    'wood': { name: 'Wood', category: 'resources', icon: 'fa-tree', color: '#5d4037', desc: 'Basic building material harvested from trees.' },
-    'stone': { name: 'Stone', category: 'resources', icon: 'fa-gem', color: '#757575', desc: 'Solid rock used for primitive tools and stone walls.' },
-    'iron': { name: 'Metal Ore', category: 'resources', icon: 'fa-cube', color: '#90a4ae', desc: 'Raw ore that can be smelted into high-quality metal.' },
-    'sulfur': { name: 'Sulfur Ore', category: 'resources', icon: 'fa-flask', color: '#ffeb3b', desc: 'Yellow crystalline substance used for gunpowder.' },
-    'scrap': { name: 'Scrap', category: 'resources', icon: 'fa-nut-bolt', color: '#bcaae1', desc: 'Essential currency for tech progression.' },
-    'hqm': { name: 'High Quality Metal', category: 'resources', icon: 'fa-diamond', color: '#fff', desc: 'Ultra-pure refined metal for advanced weapons.' },
-    'cloth': { name: 'Cloth', category: 'resources', icon: 'fa-scroll', color: '#eee', desc: 'Fiber used for medical and clothing items.' },
-    'fat': { name: 'Animal Fat', category: 'resources', icon: 'fa-oil-well', color: '#fef', desc: 'Raw fat used to make low grade fuel.' },
-    'lgf': { name: 'Low Grade Fuel', category: 'resources', icon: 'fa-gas-pump', color: '#f00', desc: 'Highly flammable fuel for machines and torches.' },
-    'leather': { name: 'Leather', category: 'resources', icon: 'fa-hide', color: '#795548', desc: 'Treated animal skin used for armor and clothing.' },
-    'sewing': { name: 'Sewing Kit', category: 'items', icon: 'fa-needle', color: '#9e9e9e', desc: 'Required for complex clothing and armor.' },
+    // Resources (Natural)
+    'wood': { name: 'Wood', category: 'resources', icon: 'fa-tree', color: '#8d6e63', rarity: 'common', desc: 'Harvested from trees. Used for base building and Fuel.' },
+    'stone': { name: 'Stone', category: 'resources', icon: 'fa-gem', color: '#b0bec5', rarity: 'common', desc: 'Raw stone for primitive tools and base stabilization.' },
+    'iron': { name: 'Metal Ore', category: 'resources', icon: 'fa-mountain', color: '#90a4ae', rarity: 'common', desc: 'Raw iron ore. Smelt this to get metal fragments.' },
+    'sulfur': { name: 'Sulfur Ore', category: 'resources', icon: 'fa-flask', color: '#fff176', rarity: 'common', desc: 'Volatile ore used in explosives and gunpowder.' },
+    'hqm': { name: 'High Quality Metal', category: 'resources', icon: 'fa-diamond', color: '#eceff1', rarity: 'elite', desc: 'Rare refined metal for modular weapons and armor.' },
+
+    // Processed Resources
+    'frag': { name: 'Metal Fragments', category: 'resources', icon: 'fa-cube', color: '#ef5350', rarity: 'rare', desc: 'Refined iron used for most mid-tier items.' },
+    'lgf': { name: 'Low Grade Fuel', category: 'resources', icon: 'fa-gas-pump', color: '#e53935', rarity: 'common', desc: 'Tallow and cloth mix. Powering your survival.' },
+    'cloth': { name: 'Cloth', category: 'resources', icon: 'fa-scroll', color: '#f5f5f5', rarity: 'common', desc: 'Fibers from hemp plants. Used for clothing and meds.' },
+    'leather': { name: 'Leather', category: 'resources', icon: 'fa-hide', color: '#795548', rarity: 'rare', desc: 'High-durability animal skin.' },
 
     // Components
-    'gear_comp': { name: 'Gears', category: 'items', icon: 'fa-gear', color: '#9e9e9e', desc: 'Mechanical parts for complex machines.' },
-    'pipe': { name: 'Metal Pipe', category: 'items', icon: 'fa-water', color: '#b0bec5', desc: 'High grade metal pipe for weapons.' },
-    'spring': { name: 'Spring', category: 'items', icon: 'fa-coil', color: '#cfd8dc', desc: 'Tension spring used in automatic weapons.' },
+    'scrap': { name: 'Scrap', category: 'items', icon: 'fa-nut-bolt', color: '#d1c4e9', rarity: 'rare', desc: 'Essential material for unlocking higher technology.' },
+    'gear_comp': { name: 'Gears', category: 'items', icon: 'fa-gear', color: '#bdbdbd', rarity: 'rare', desc: 'Rusty mechanical parts for machinery.' },
+    'pipe': { name: 'Metal Pipe', category: 'items', icon: 'fa-water', color: '#90a4ae', rarity: 'rare', desc: 'Sturdy pipe used for firearms barrels.' },
+    'spring': { name: 'Spring', category: 'items', icon: 'fa-coil', color: '#cfd8dc', rarity: 'rare', desc: 'Tension spring for automatic weapons.' },
+    'sewing': { name: 'Sewing Kit', category: 'items', icon: 'fa-needle', color: '#bdbdbd', rarity: 'common', desc: 'Required for advanced clothing.' },
 
-    // Tools
-    'stone_hatchet': { name: 'Stone Hatchet', category: 'tools', icon: 'fa-axe', recipe: { wood: 200, stone: 100 }, desc: 'Crude tool for harvesting wood.' },
-    'stone_pickaxe': { name: 'Stone Pickaxe', category: 'tools', icon: 'fa-hammer-war', recipe: { wood: 200, stone: 100 }, desc: 'Crude tool for mining stone.' },
-    'axe': { name: 'Hatchet', category: 'tools', icon: 'fa-axe', recipe: { wood: 100, stone: 50 }, desc: 'A sharp tool for efficient wood harvesting.' },
-    'pickaxe': { name: 'Pickaxe', category: 'tools', icon: 'fa-hammer-war', recipe: { wood: 50, stone: 100 }, desc: 'Heavy duty tool for mining rocks and minerals.' },
-    'hammer': { name: 'Hammer', category: 'tools', icon: 'fa-hammer', recipe: { wood: 50, iron: 10 }, desc: 'Used for building and upgrading structures.' },
-    'torch': { name: 'Torch', category: 'tools', icon: 'fa-fire', recipe: { wood: 50, lgf: 1 }, desc: 'Provides light in the dark. Can be used as a weapon.' },
+    // Tools (Survival)
+    'stone_hatchet': { name: 'Stone Hatchet', category: 'tools', icon: 'fa-axe', color: '#bcaae1', rarity: 'common', recipe: { wood: 200, stone: 100 }, desc: 'Primitive tool for wood harvesting.' },
+    'stone_pickaxe': { name: 'Stone Pickaxe', category: 'tools', icon: 'fa-hammer-war', color: '#bcaae1', rarity: 'common', recipe: { wood: 200, stone: 100 }, desc: 'Slow but effective for basic mining.' },
+    'hammer': { name: 'Building Hammer', category: 'tools', icon: 'fa-hammer', color: '#1e88e5', rarity: 'common', recipe: { wood: 100 }, desc: 'Construct and upgrade your base.' },
+    'torch': { name: 'Torch', category: 'tools', icon: 'fa-fire', color: '#fb8c00', rarity: 'common', recipe: { wood: 50, lgf: 1 }, desc: 'Provides light and subtle heat.' },
 
-    // Weapons
-    'spear': { name: 'Wood Spear', category: 'weapons', icon: 'fa-pencil', recipe: { wood: 300 }, desc: 'Long range primitive melee weapon.' },
-    'machete': { name: 'Machete', category: 'weapons', icon: 'fa-knife', recipe: { iron: 100 }, desc: 'Fast attacking melee weapon with high damage.' },
-    'bow': { name: 'Hunting Bow', category: 'weapons', icon: 'fa-bow-arrow', recipe: { wood: 200, cloth: 50 }, desc: 'Silent ranged weapon for hunting and combat.' },
-    'pistol': { name: 'Semi Pistol', category: 'weapons', icon: 'fa-gun', recipe: { iron: 100, pipe: 1 }, desc: 'A reliable handmade 9mm sidearm.' },
-    'python': { name: 'Python Revolver', category: 'weapons', icon: 'fa-gun', recipe: { hqm: 10, pipe: 1, spring: 1 }, desc: 'Powerful .44 magnum revolver.' },
-    'ak47': { name: 'Assault Rifle', category: 'weapons', icon: 'fa-jet-fighter', recipe: { hqm: 50, wood: 200, spring: 2, pipe: 1 }, desc: 'The most powerful automatic weapon.' },
-    'smg': { name: 'Custom SMG', category: 'weapons', icon: 'fa-shield', recipe: { iron: 150, spring: 1 }, desc: 'Fast firing rate, great for close quarters.' },
+    // Weapons (Defense)
+    'spear': { name: 'Wooden Spear', category: 'weapons', icon: 'fa-pencil', color: '#8d6e63', rarity: 'common', recipe: { wood: 300 }, desc: 'Cheap long-range melee option.' },
+    'machete': { name: 'Machete', category: 'weapons', icon: 'fa-knife', color: '#90a4ae', rarity: 'rare', recipe: { iron: 100 }, desc: 'Standard industrial blade.' },
+    'bow': { name: 'Hunting Bow', category: 'weapons', icon: 'fa-bow-arrow', color: '#8d6e63', rarity: 'common', recipe: { wood: 200, cloth: 50 }, desc: 'Silent and deadly ranged tool.' },
+    'pistol': { name: 'Semi-Pistol', category: 'weapons', icon: 'fa-gun', color: '#546e7a', rarity: 'rare', recipe: { iron: 150, pipe: 1 }, desc: 'P250 clone. Fast firing sidearm.' },
+    'ak47': { name: 'Assault Rifle', category: 'weapons', icon: 'fa-jet-fighter', color: '#6d4c41', rarity: 'elite', recipe: { hqm: 50, wood: 200, spring: 2, pipe: 1 }, desc: 'The king of Rust weapons. High recoil, high reward.' },
 
-    // Ammo
-    'arrow': { name: 'Arrows', category: 'ammo', icon: 'fa-location-arrow', recipe: { wood: 10 }, desc: 'Ammo for the hunting bow.' },
-    'pistol_ammo': { name: 'Pistol Bullets', category: 'ammo', icon: 'fa-circle', recipe: { iron: 5, sulfur: 5 }, desc: '9mm rounds for the semi-automatic pistol.' },
-    'rifle_ammo': { name: 'Rifle Bullets', category: 'ammo', icon: 'fa-circle-dot', recipe: { iron: 10, sulfur: 10 }, desc: 'High velocity 5.56mm rounds.' },
-
-    // Armor & Clothing
-    'helmet': { name: 'Metal Helmet', category: 'clothing', icon: 'fa-hat-cowboy', recipe: { hqm: 15, sewing: 2 }, desc: 'Protects the head from projectile damage.' },
-    'armor': { name: 'Metal Chestplate', category: 'clothing', icon: 'fa-shirt', recipe: { hqm: 25, leather: 10 }, desc: 'Heavy metal plate armor for maximum protection.' },
-    'clothing': { name: 'Pants', category: 'clothing', icon: 'fa-socks', recipe: { cloth: 20 }, desc: 'Basic leg covering for warmth.' },
-    'hazmat': { name: 'Hazmat Suit', category: 'clothing', icon: 'fa-user-ninja', recipe: { iron: 200, scrap: 50 }, desc: 'Full body protection from deadly radiation.' },
-
-    // Building
-    'foundation': { name: 'Foundation', category: 'construction', icon: 'fa-square', recipe: { wood: 200 }, desc: 'The starting point for any structure.' },
-    'wall': { name: 'Wall', category: 'construction', icon: 'fa-border-all', recipe: { wood: 100 }, desc: 'Provides vertical protection and privacy.' },
-    'door': { name: 'Wooden Door', category: 'construction', icon: 'fa-door-closed', recipe: { wood: 300 }, desc: 'Allows access while keeping others out.' },
-    'lock': { name: 'Key Lock', category: 'construction', icon: 'fa-lock', recipe: { iron: 100 }, desc: 'Secure your doors from unwanted guests.' },
-    'sleeping_bag': { name: 'Sleeping Bag', category: 'construction', icon: 'fa-bed', recipe: { cloth: 30 }, desc: 'Set your respawn point here.' },
-
-    // Devices
-    't1_wb': { name: 'Workbench T1', category: 'electrical', icon: 'fa-table', recipe: { wood: 500, iron: 100, scrap: 50 }, desc: 'Essential for crafting basic blueprints.' },
-    'furnace': { name: 'Furnace', category: 'electrical', icon: 'fa-fire-burner', recipe: { stone: 200, wood: 50, lgf: 10 }, desc: 'Used for smelting raw ores into metals.' },
-    'box': { name: 'Large Wood Box', category: 'items', icon: 'fa-box-open', recipe: { wood: 250 }, desc: 'Large capacity storage container.' },
+    // Construction
+    'foundation': { name: 'Foundation', category: 'construction', icon: 'fa-square', color: '#8d6e63', rarity: 'common', recipe: { wood: 200 }, desc: 'The heart of your sanctuary.' },
+    'wall': { name: 'Wall', category: 'construction', icon: 'fa-border-all', color: '#8d6e63', rarity: 'common', recipe: { wood: 100 }, desc: 'Standard structural blockade.' },
+    'door': { name: 'Wood Door', category: 'construction', icon: 'fa-door-closed', color: '#8d6e63', rarity: 'common', recipe: { wood: 300 }, desc: 'Access point with minimal security.' },
+    'lock': { name: 'Key Lock', category: 'construction', icon: 'fa-lock', color: '#546e7a', rarity: 'common', recipe: { iron: 100 }, desc: 'Basic protection for your base.' },
 
     // Medical
-    'syringe': { name: 'Medical Syringe', category: 'medical', icon: 'fa-syringe', recipe: { iron: 20, scrap: 5, cloth: 10 }, desc: 'Instant health restoration for emergencies.' },
-    'bandage': { name: 'Bandage', category: 'medical', icon: 'fa-band-aid', recipe: { cloth: 2 }, desc: 'Stops bleeding and slowly restores health.' }
+    'bandage': { name: 'Bandage', category: 'medical', icon: 'fa-band-aid', color: '#e57373', rarity: 'common', recipe: { cloth: 2 }, desc: 'Stops bleeding immediately.' },
+    'syringe': { name: 'Medical Syringe', category: 'medical', icon: 'fa-syringe', color: '#ef5350', rarity: 'rare', recipe: { iron: 20, scrap: 5, cloth: 10 }, desc: 'Instant adrenaline-boosted recovery.' }
 };
+
 
 
 
@@ -200,8 +182,8 @@ try {
     sun.shadow.mapSize.set(1024, 1024);
     scene.add(sun);
 
-    // World
-    const groundGeo = new THREE.PlaneGeometry(CONFIG.WORLD_SIZE, CONFIG.WORLD_SIZE, 40, 40);
+    // World Detail
+    const groundGeo = new THREE.PlaneGeometry(CONFIG.WORLD_SIZE, CONFIG.WORLD_SIZE, 60, 60);
     groundGeo.rotateX(-Math.PI / 2);
     const groundPos = groundGeo.attributes.position;
     for (let i = 0; i < groundPos.count; i++) {
@@ -210,25 +192,40 @@ try {
         groundPos.setY(i, getTerrainHeight(x, z));
     }
     groundGeo.computeVertexNormals();
-    const ground = new THREE.Mesh(groundGeo, new THREE.MeshStandardMaterial({ color: 0x477033, roughness: 0.9 }));
+    const ground = new THREE.Mesh(groundGeo, new THREE.MeshStandardMaterial({ color: 0x3d5c2e, roughness: 1.0, metalness: 0.0 }));
     ground.receiveShadow = true;
     scene.add(ground);
 
     const interactables = [];
     const collisionObjects = [];
 
-    // Trees
-    const trunkGeo = new THREE.CylinderGeometry(0.2, 0.35, 2.5, 8);
-    const leavesGeo = new THREE.DodecahedronGeometry(1.5, 1);
-    const woodMat = new THREE.MeshStandardMaterial({ color: 0x5d4037 });
-    const leafMat = new THREE.MeshStandardMaterial({ color: 0x244a26 });
+    // Realistic Procedural Trees
     for (let i = 0; i < CONFIG.TREE_COUNT; i++) {
         const x = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
         const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
         const y = getTerrainHeight(x, z);
+        
         const tree = new THREE.Group();
-        const trunk = new THREE.Mesh(trunkGeo, woodMat); trunk.position.y = 1.25; trunk.castShadow = true; tree.add(trunk);
-        const leaves = new THREE.Mesh(leavesGeo, leafMat); leaves.position.y = 3; leaves.castShadow = true; tree.add(leaves);
+        // Trunk
+        const trunk = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.15, 0.4, 3, 8),
+            new THREE.MeshStandardMaterial({ color: 0x4e342e, roughness: 0.9 })
+        );
+        trunk.position.y = 1.5;
+        trunk.castShadow = true;
+        tree.add(trunk);
+
+        // Leaves in clusters
+        const leafMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness: 0.8 });
+        for(let j=0; j<3; j++) {
+            const cluster = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2 - j*0.2, 1), leafMat);
+            cluster.position.y = 2.5 + j*0.8;
+            cluster.position.x = (Math.random()-0.5)*0.5;
+            cluster.position.z = (Math.random()-0.5)*0.5;
+            cluster.castShadow = true;
+            tree.add(cluster);
+        }
+
         tree.position.set(x, y, z);
         tree.userData = { type: 'tree', health: 4, radius: 0.5 };
         scene.add(tree);
@@ -236,19 +233,26 @@ try {
         collisionObjects.push(tree);
     }
 
-    // Rocks
-    const rockGeo = new THREE.DodecahedronGeometry(1.2, 0);
-    const sulfurMat = new THREE.MeshStandardMaterial({ color: 0xffeb3b, emissive: 0x444400, emissiveIntensity: 0.2 });
+    // Realistic Rocks
+    const rockMat = new THREE.MeshStandardMaterial({ color: 0x757575, roughness: 1.0 });
+    const sulfurMat = new THREE.MeshStandardMaterial({ color: 0xfdd835, roughness: 0.9, emissive: 0x444400, emissiveIntensity: 0.1 });
+    const ironMat = new THREE.MeshStandardMaterial({ color: 0x90a4ae, metalness: 0.4, roughness: 0.7 });
+
     for (let i = 0; i < CONFIG.ROCK_COUNT + CONFIG.SULFUR_COUNT; i++) {
         const x = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
         const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
         const isSulfur = i >= CONFIG.ROCK_COUNT;
         const isIron = !isSulfur && Math.random() > 0.7;
-        const rock = new THREE.Mesh(rockGeo, isSulfur ? sulfurMat : new THREE.MeshStandardMaterial({ color: isIron ? 0x90a4ae : 0x6e7072 }));
+        
+        const rock = new THREE.Mesh(
+            new THREE.DodecahedronGeometry(1.2, 0),
+            isSulfur ? sulfurMat : (isIron ? ironMat : rockMat)
+        );
         const y = getTerrainHeight(x, z);
-        rock.position.set(x, y + 0.4, z);
+        rock.position.set(x, y + 0.3, z);
         const scale = 0.6 + Math.random();
-        rock.scale.set(scale, scale, scale);
+        rock.scale.set(scale, scale * 0.8, scale);
+        rock.rotation.set(Math.random(), Math.random(), Math.random());
         rock.castShadow = true;
         rock.userData = { type: isSulfur ? 'sulfur' : (isIron ? 'iron' : 'rock'), health: 5, radius: scale };
         scene.add(rock);
@@ -256,14 +260,15 @@ try {
         collisionObjects.push(rock);
     }
 
-    // Barrels
-    const barrelGeo = new THREE.CylinderGeometry(0.4, 0.4, 1.2, 8);
-    const barrelMat = new THREE.MeshStandardMaterial({ color: 0x1e88e5 });
+    // Industrial Barrels
+    const barrelGeo = new THREE.CylinderGeometry(0.4, 0.4, 1.2, 12);
+    const barrelMat = new THREE.MeshStandardMaterial({ color: 0x0277bd, metalness: 0.6, roughness: 0.4 });
     for (let i = 0; i < CONFIG.BARREL_COUNT; i++) {
         const x = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 60);
         const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 60);
         const barrel = new THREE.Mesh(barrelGeo, barrelMat);
         barrel.position.set(x, getTerrainHeight(x, z) + 0.6, z);
+        barrel.castShadow = true;
         barrel.userData = { type: 'barrel', health: 3, radius: 0.5 };
         scene.add(barrel);
         interactables.push(barrel);
@@ -276,6 +281,7 @@ try {
     ghost.visible = false;
     scene.add(ghost);
     const builtObjects = [];
+
 
     // Animation & Logic Functions
     function updateGhost() {
@@ -352,8 +358,8 @@ try {
             const matchSearch = item.name.toLowerCase().includes(searchTerm);
             if (matchCat && matchSearch) {
                 const slot = document.createElement('div');
-                slot.className = 'craft-slot' + (state.selectedItem === id ? ' active' : '');
-                slot.innerHTML = `<i class="fas ${item.icon}"></i><span class="item-name-label">${item.name}</span>`;
+                slot.className = `craft-slot rarity-${item.rarity || 'common'}${state.selectedItem === id ? ' active' : ''}`;
+                slot.innerHTML = `<i class="fas ${item.icon}" style="color:${item.color}"></i><span class="item-name-label">${item.name}</span>`;
                 slot.onclick = () => { state.selectedItem = id; state.craftQty = 1; renderCraftingGrid(); showCraftingDetail(id); };
                 grid.appendChild(slot);
             }
@@ -422,6 +428,7 @@ try {
             if (item && item.count > 0) {
                 const data = ITEMS_DATA[item.id];
                 if (data) {
+                    slot.classList.add(`rarity-${data.rarity || 'common'}`);
                     slot.innerHTML = `<i class="fas ${data.icon}" style="color:${data.color}; font-size: 1.2rem;"></i><span style="position:absolute;bottom:2px;right:4px;font-size:0.65rem;font-weight:900;color:#fff;">${item.count}</span>`;
                 }
             }

@@ -1,10 +1,17 @@
 :root {
-    --primary: #e67e22;
-    --health: #c0392b;
-    --hunger: #f1c40f;
-    --bg-dark: rgba(20, 20, 20, 0.95);
-    --border: rgba(255, 255, 255, 0.1);
-    --slot-bg: rgba(255, 255, 255, 0.05);
+    --primary: #cd5c2c;
+    /* Rust Orange */
+    --primary-light: #ff763b;
+    --health: linear-gradient(90deg, #c0392b, #e74c3c);
+    --hunger: linear-gradient(90deg, #f39c12, #f1c40f);
+    --bg-dark: rgba(10, 10, 10, 0.98);
+    --border: rgba(255, 255, 255, 0.08);
+    --slot-bg: rgba(255, 255, 255, 0.02);
+
+    /* Rarity Colors */
+    --rarity-common: #607d8b;
+    --rarity-rare: #1e88e5;
+    --rarity-elite: #43a047;
 }
 
 body,
@@ -102,10 +109,30 @@ html {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 4px;
-    height: 4px;
-    background: white;
+    width: 6px;
+    height: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.rarity-common {
+    border-color: var(--rarity-common) !important;
+    color: var(--rarity-common);
+}
+
+.rarity-rare {
+    border-color: var(--rarity-rare) !important;
+    color: var(--rarity-rare);
+}
+
+.rarity-elite {
+    border-color: var(--rarity-elite) !important;
+    color: var(--rarity-elite);
+}
+
+.rarity-elite i {
+    text-shadow: 0 0 10px var(--rarity-elite);
 }
 
 /* New Rust-Style Inventory Overlay */
@@ -234,7 +261,7 @@ html {
 
 .category-item:hover,
 .category-item.active {
-    background: #3498db;
+    background: var(--primary);
     color: white;
 }
 
