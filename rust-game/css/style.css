@@ -4,6 +4,8 @@
     --primary-light: #ff763b;
     --health: linear-gradient(90deg, #c0392b, #e74c3c);
     --hunger: linear-gradient(90deg, #f39c12, #f1c40f);
+    --thirst: linear-gradient(90deg, #2980b9, #3498db);
+    --radiation: linear-gradient(90deg, #27ae60, #2ecc71);
     --bg-dark: rgba(10, 10, 10, 0.98);
     --border: rgba(255, 255, 255, 0.08);
     --slot-bg: rgba(255, 255, 255, 0.02);
@@ -93,6 +95,14 @@ html {
 
 .hunger .bar-fill {
     background: var(--hunger);
+}
+
+.thirst .bar-fill {
+    background: var(--thirst);
+}
+
+.radiation .bar-fill {
+    background: var(--radiation);
 }
 
 .stats {

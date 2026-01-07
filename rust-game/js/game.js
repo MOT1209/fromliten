@@ -5,39 +5,38 @@ console.log("Rust Survival Engine v2.5: Initializing with Collision Physics...")
 
 // ==================== CONFIGURATION ====================
 const CONFIG = {
-    WORLD_SIZE: 250,
-    TREE_COUNT: 45,
-    ROCK_COUNT: 25,
-    SULFUR_COUNT: 15,
-    BARREL_COUNT: 20,
-    BUILD_DISTANCE: 6,
-    INTERACT_DISTANCE: 3.5,
+    WORLD_SIZE: 300,
+    TREE_COUNT: 55,
+    ROCK_COUNT: 30,
+    SULFUR_COUNT: 20,
+    BARREL_COUNT: 25,
+    BUILD_DISTANCE: 7,
+    INTERACT_DISTANCE: 4.5,
     PLAYER_SPEED: 80,
     FRICTION: 10.0,
-
-    GRAVITY: 22.0,
-    JUMP_FORCE: 8.5,
-    PLAYER_RADIUS: 0.8 // Radius for collision
+    GRAVITY: 24.0,
+    JUMP_FORCE: 9.0,
+    PLAYER_RADIUS: 0.8,
+    DAY_LENGTH: 600,
+    RAD_ZONE_RADIUS: 18
 };
 
 // ==================== STATE ====================
 const state = {
     inventory: [
-        { id: 'wood', count: 0 },
-        { id: 'stone', count: 0 },
-        { id: 'iron', count: 0 },
-        { id: 'sulfur', count: 0 },
-        { id: 'scrap', count: 0 }
+        { id: 'wood', count: 500 }, // Start with some for testing
+        { id: 'stone', count: 200 }
     ],
     gear: { head: null, chest: null, legs: null, feet: null },
     belt: Array(6).fill(null),
-    stats: { health: 100, hunger: 100, calories: 500, hydration: 500 },
+    stats: { health: 100, hunger: 100, thirst: 100, radiation: 0 },
     buildMode: false,
     viewMode: 'first',
     controls: { forward: false, backward: false, left: false, right: false, jump: false, canJump: false, crouch: false },
     selectedCategory: 'common',
     selectedItem: null,
-    craftQty: 1
+    craftQty: 1,
+    time: 300 // Start at noon
 };
 
 const ITEMS_DATA = {
@@ -77,6 +76,8 @@ const ITEMS_DATA = {
     // Construction
     'foundation': { name: 'Foundation', category: 'construction', icon: 'fa-square', color: '#8d6e63', rarity: 'common', recipe: { wood: 200 }, desc: 'The heart of your sanctuary.' },
     'wall': { name: 'Wall', category: 'construction', icon: 'fa-border-all', color: '#8d6e63', rarity: 'common', recipe: { wood: 100 }, desc: 'Standard structural blockade.' },
+    'stone_wall': { name: 'Stone Wall', category: 'construction', icon: 'fa-border-none', color: '#b0bec5', rarity: 'rare', recipe: { stone: 300 }, desc: 'Higher durability stone structure.' },
+    'metal_wall': { name: 'Sheet Metal Wall', category: 'construction', icon: 'fa-shield-halved', color: '#90a4ae', rarity: 'rare', recipe: { frag: 200 }, desc: 'Heavy industrial protection.' },
     'door': { name: 'Wood Door', category: 'construction', icon: 'fa-door-closed', color: '#8d6e63', rarity: 'common', recipe: { wood: 300 }, desc: 'Access point with minimal security.' },
     'lock': { name: 'Key Lock', category: 'construction', icon: 'fa-lock', color: '#546e7a', rarity: 'common', recipe: { iron: 100 }, desc: 'Basic protection for your base.' },
 
@@ -118,43 +119,94 @@ function updateHUD() {
     const woodSpan = document.getElementById('wood-count');
     const stoneSpan = document.getElementById('stone-count');
     const ironSpan = document.getElementById('iron-count');
-
     if (woodSpan) woodSpan.innerText = getItemCount('wood');
     if (stoneSpan) stoneSpan.innerText = getItemCount('stone');
     if (ironSpan) ironSpan.innerText = getItemCount('iron');
+    updateHUDSimulation();
+}
 
+function updateHUDSimulation() {
     const healthFill = document.getElementById('health-fill');
     const hungerFill = document.getElementById('hunger-fill');
+    const thirstFill = document.getElementById('thirst-fill');
+    const radFill = document.getElementById('rad-fill');
+    const radOverlay = document.getElementById('rad-overlay');
+
     if (healthFill) healthFill.style.width = state.stats.health + '%';
     if (hungerFill) hungerFill.style.width = state.stats.hunger + '%';
+    if (thirstFill) thirstFill.style.width = state.stats.thirst + '%';
+    if (radFill) radFill.style.width = state.stats.radiation + '%';
+    if (radOverlay) radOverlay.style.opacity = state.stats.radiation / 100;
 }
 
 function createPlayer(scene) {
     const group = new THREE.Group();
     const torso = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 0.3), new THREE.MeshStandardMaterial({ color: 0x8b322c }));
-    torso.position.y = 1.25;
-    torso.castShadow = true;
-    group.add(torso);
-
+    torso.position.y = 1.25; torso.castShadow = true; group.add(torso);
     const head = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.35, 0.3), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
-    head.position.y = 1.85;
-    head.castShadow = true;
-    group.add(head);
-
+    head.position.y = 1.85; head.castShadow = true; group.add(head);
     const legGeo = new THREE.BoxGeometry(0.25, 0.8, 0.25);
     const legMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-    const lLeg = new THREE.Mesh(legGeo, legMat);
-    lLeg.position.set(-0.15, 0.4, 0);
-    lLeg.castShadow = true;
-    group.add(lLeg);
-
-    const rLeg = new THREE.Mesh(legGeo, legMat);
-    rLeg.position.set(0.15, 0.4, 0);
-    rLeg.castShadow = true;
-    group.add(rLeg);
-
+    const lLeg = new THREE.Mesh(legGeo, legMat); lLeg.position.set(-0.15, 0.4, 0); lLeg.castShadow = true; group.add(lLeg);
+    const rLeg = new THREE.Mesh(legGeo, legMat); rLeg.position.set(0.15, 0.4, 0); rLeg.castShadow = true; group.add(rLeg);
     scene.add(group);
     return group;
+}
+
+// ==================== SYSTEMS ====================
+class NPC {
+    constructor(scene, type, position) {
+        this.type = type;
+        this.mesh = new THREE.Group();
+        const color = type === 'wolf' ? 0x5d4037 : (type === 'bear' ? 0x3e2723 : 0x01579b);
+        const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.4, 0.4), new THREE.MeshStandardMaterial({ color }));
+        body.position.y = 0.7; this.mesh.add(body);
+
+        if (type === 'scientist') {
+            const gun = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.6), new THREE.MeshStandardMaterial({ color: 0x212121 }));
+            gun.position.set(0.4, 1.0, 0.4); this.mesh.add(gun);
+        }
+
+        this.mesh.position.copy(position);
+        scene.add(this.mesh);
+        this.velocity = new THREE.Vector3();
+        this.health = type === 'bear' ? 120 : (type === 'scientist' ? 80 : 50);
+        this.lastAttack = 0;
+    }
+    update(delta, playerPos) {
+        const dist = this.mesh.position.distanceTo(playerPos);
+        const agroRange = this.type === 'scientist' ? 30 : 18;
+        const attackRange = this.type === 'scientist' ? 12 : 2.5;
+
+        if (dist < agroRange) {
+            this.mesh.lookAt(playerPos.x, this.mesh.position.y, playerPos.z);
+            if (dist > attackRange - 1) {
+                const dir = new THREE.Vector3().subVectors(playerPos, this.mesh.position).normalize();
+                this.mesh.position.addScaledVector(dir, (this.type === 'bear' ? 3 : 5) * delta);
+            }
+            if (dist < attackRange && performance.now() - this.lastAttack > (this.type === 'scientist' ? 800 : 1200)) {
+                state.stats.health -= (this.type === 'bear' ? 20 : (this.type === 'scientist' ? 8 : 12));
+                updateHUD(); this.lastAttack = performance.now();
+                if (this.type === 'scientist') console.log("SHOT FIRED BY SCIENTIST!");
+            }
+        }
+    }
+}
+
+const radZones = [];
+const npcs = [];
+
+function createMonument(scene, x, z) {
+    const tower = new THREE.Group();
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(4, 5, 20, 8), new THREE.MeshStandardMaterial({ color: 0x455a64 }));
+    base.position.y = 10; tower.add(base);
+    tower.position.set(x, getTerrainHeight(x, z), z);
+    scene.add(tower);
+    radZones.push({ x, z, r: CONFIG.RAD_ZONE_RADIUS });
+    const loot = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1, 1.2), new THREE.MeshStandardMaterial({ color: 0xffa000 }));
+    loot.position.set(x + 2, getTerrainHeight(x + 2, z) + 0.5, z);
+    loot.userData = { type: 'crate', health: 1 };
+    scene.add(loot);
 }
 
 // ==================== ENGINE START ====================
@@ -175,7 +227,8 @@ try {
     playerMesh = createPlayer(scene);
 
     // Light
-    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambientLight);
     const sun = new THREE.DirectionalLight(0xffffff, 1.2);
     sun.position.set(50, 100, 20);
     sun.castShadow = true;
@@ -204,7 +257,7 @@ try {
         const x = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
         const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
         const y = getTerrainHeight(x, z);
-        
+
         const tree = new THREE.Group();
         // Trunk
         const trunk = new THREE.Mesh(
@@ -217,11 +270,11 @@ try {
 
         // Leaves in clusters
         const leafMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness: 0.8 });
-        for(let j=0; j<3; j++) {
-            const cluster = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2 - j*0.2, 1), leafMat);
-            cluster.position.y = 2.5 + j*0.8;
-            cluster.position.x = (Math.random()-0.5)*0.5;
-            cluster.position.z = (Math.random()-0.5)*0.5;
+        for (let j = 0; j < 3; j++) {
+            const cluster = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2 - j * 0.2, 1), leafMat);
+            cluster.position.y = 2.5 + j * 0.8;
+            cluster.position.x = (Math.random() - 0.5) * 0.5;
+            cluster.position.z = (Math.random() - 0.5) * 0.5;
             cluster.castShadow = true;
             tree.add(cluster);
         }
@@ -243,7 +296,7 @@ try {
         const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 40);
         const isSulfur = i >= CONFIG.ROCK_COUNT;
         const isIron = !isSulfur && Math.random() > 0.7;
-        
+
         const rock = new THREE.Mesh(
             new THREE.DodecahedronGeometry(1.2, 0),
             isSulfur ? sulfurMat : (isIron ? ironMat : rockMat)
@@ -273,6 +326,18 @@ try {
         scene.add(barrel);
         interactables.push(barrel);
         collisionObjects.push(barrel);
+    }
+
+    // Monuments & Rad Zones
+    createMonument(scene, 40, -40);
+    createMonument(scene, -60, 50);
+
+    // Spawn NPCs
+    for (let i = 0; i < 5; i++) {
+        const x = (Math.random() - 0.5) * CONFIG.WORLD_SIZE;
+        const z = (Math.random() - 0.5) * CONFIG.WORLD_SIZE;
+        const type = Math.random() > 0.3 ? 'wolf' : 'bear';
+        npcs.push(new NPC(scene, type, new THREE.Vector3(x, getTerrainHeight(x, z), z)));
     }
 
     // Ghost/Building
@@ -316,31 +381,51 @@ try {
     const raycaster = new THREE.Raycaster();
     function performAction() {
         if (state.buildMode) {
-            if (ghost.visible && getItemCount('wood') >= 10) {
-                const b = new THREE.Mesh(buildGeo, new THREE.MeshStandardMaterial({ color: 0x6e4b2e }));
-                b.position.copy(ghost.position); b.castShadow = true; b.receiveShadow = true; scene.add(b); builtObjects.push(b);
-                const wood = state.inventory.find(i => i.id === 'wood'); if (wood) wood.count -= 10;
+            if (ghost.visible && getItemCount('wood') >= 200) {
+                const b = new THREE.Mesh(buildGeo, new THREE.MeshStandardMaterial({ color: 0x8d6e63 }));
+                b.position.copy(ghost.position); b.castShadow = true; b.receiveShadow = true;
+                b.userData = { type: 'wall_wood', health: 10, tier: 1 };
+                scene.add(b); builtObjects.push(b);
+                const wood = state.inventory.find(i => i.id === 'wood'); if (wood) wood.count -= 200;
                 updateHUD();
             }
             return;
         }
         raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-        const hits = raycaster.intersectObjects(interactables, true);
+        const hits = raycaster.intersectObjects([...interactables, ...builtObjects], true);
         if (hits.length > 0 && hits[0].distance < CONFIG.INTERACT_DISTANCE) {
-            let obj = hits[0].object; while (obj.parent !== scene) obj = obj.parent;
-            obj.userData.health -= 1; obj.position.x += 0.05; setTimeout(() => obj.position.x -= 0.05, 50);
-            const type = obj.userData.type;
-            if (type === 'tree') addItem('wood', 7);
-            else if (type === 'rock') addItem('stone', 5);
-            else if (type === 'iron') addItem('iron', 5);
-            else if (type === 'sulfur') addItem('sulfur', 5);
-            else if (type === 'barrel') {
-                addItem('scrap', 2);
-                if (Math.random() > 0.7) addItem('gear_comp', 1);
-                if (Math.random() > 0.7) addItem('pipe', 1);
-                if (Math.random() > 0.7) addItem('spring', 1);
+            let obj = hits[0].object;
+            while (obj.parent && obj.parent !== scene) obj = obj.parent;
+            if (!obj.userData.type) return;
+
+            // Hammer Upgrade logic
+            if (state.belt[0] === 'hammer' && obj.userData.tier) {
+                if (obj.userData.tier === 1 && getItemCount('stone') >= 300) {
+                    obj.material.color.setHex(0xb0bec5); obj.userData.tier = 2; obj.userData.type = 'wall_stone';
+                    const stone = state.inventory.find(i => i.id === 'stone'); if (stone) stone.count -= 300;
+                } else if (obj.userData.tier === 2 && getItemCount('frag') >= 200) {
+                    obj.material.color.setHex(0x90a4ae); obj.userData.tier = 3; obj.userData.type = 'wall_metal';
+                    const frag = state.inventory.find(i => i.id === 'frag'); if (frag) frag.count -= 200;
+                }
+                updateHUD(); return;
             }
-            if (obj.userData.health <= 0) { scene.remove(obj); interactables.splice(interactables.indexOf(obj), 1); collisionObjects.splice(collisionObjects.indexOf(obj), 1); }
+
+            obj.userData.health -= 1;
+            obj.position.y += 0.05; setTimeout(() => obj.position.y -= 0.05, 50);
+
+            const type = obj.userData.type;
+            if (type === 'tree') addItem('wood', 12);
+            else if (type === 'rock') addItem('stone', 10);
+            else if (type === 'iron') addItem('iron', 8);
+            else if (type === 'sulfur') addItem('sulfur', 8);
+            else if (type === 'barrel') { addItem('scrap', 3); addItem('lgf', 2); }
+            else if (type === 'crate') { addItem('scrap', 15); addItem('frag', 80); if (Math.random() > 0.6) addItem('pistol', 1); }
+
+            if (obj.userData.health <= 0) {
+                scene.remove(obj);
+                if (interactables.includes(obj)) interactables.splice(interactables.indexOf(obj), 1);
+                if (builtObjects.includes(obj)) builtObjects.splice(builtObjects.indexOf(obj), 1);
+            }
             updateHUD();
         }
     }
@@ -513,9 +598,40 @@ try {
     function animate() {
         requestAnimationFrame(animate);
         const time = performance.now();
-        const delta = Math.min((time - lastTime) / 1000, 0.1); // Cap delta
+        const delta = Math.min((time - lastTime) / 1000, 0.1);
+
+        // Simulation Update (Hunger, Thirst, Rad)
+        state.time = (state.time + delta) % CONFIG.DAY_LENGTH;
+        const dayProgress = state.time / CONFIG.DAY_LENGTH;
+
+        // Day/Night Cycle
+        const angle = dayProgress * Math.PI * 2;
+        sun.position.set(Math.cos(angle) * 100, Math.sin(angle) * 100, 20);
+        sun.intensity = Math.max(0, Math.sin(angle) * 1.5);
+        ambientLight.intensity = Math.max(0.1, Math.sin(angle) * 0.4);
+        scene.fog = new THREE.FogExp2(dayProgress > 0.5 && dayProgress < 0.9 ? 0x050510 : 0x87ceeb, 0.01);
 
         if (pointerControls.isLocked) {
+            // Survival Stats logic
+            state.stats.hunger = Math.max(0, state.stats.hunger - 0.05 * delta);
+            state.stats.thirst = Math.max(0, state.stats.thirst - 0.08 * delta);
+
+            // Radiation logic
+            let inRad = false;
+            radZones.forEach(z => {
+                const d = new THREE.Vector3(camera.position.x, 0, camera.position.z).distanceTo(new THREE.Vector3(z.x, 0, z.z));
+                if (d < z.r) inRad = true;
+            });
+            if (inRad) state.stats.radiation = Math.min(100, state.stats.radiation + 2 * delta);
+            else state.stats.radiation = Math.max(0, state.stats.radiation - 1 * delta);
+
+            if (state.stats.hunger <= 0 || state.stats.thirst <= 0 || state.stats.radiation >= 100) {
+                state.stats.health -= 2 * delta;
+            }
+
+            // Update NPCs
+            npcs.forEach(npc => npc.update(delta, camera.position));
+
             velocity.x -= velocity.x * CONFIG.FRICTION * delta;
             velocity.z -= velocity.z * CONFIG.FRICTION * delta;
             velocity.y -= CONFIG.GRAVITY * delta;
@@ -538,6 +654,7 @@ try {
                 playerMesh.rotation.y = playerRot.y + Math.PI;
             }
             updateGhost();
+            updateHUDSimulation();
         }
         const originalCamPos = camera.position.clone();
         if (state.viewMode === 'third') {

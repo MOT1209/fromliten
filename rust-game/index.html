@@ -36,6 +36,14 @@
                     <div class="bar-fill" id="hunger-fill" style="width: 100%;"></div>
                     <span class="bar-label"><i class="fas fa-utensils"></i> Hunger</span>
                 </div>
+                <div class="stat-bar thirst">
+                    <div class="bar-fill" id="thirst-fill" style="width: 100%;"></div>
+                    <span class="bar-label"><i class="fas fa-tint"></i> Thirst</span>
+                </div>
+                <div class="stat-bar radiation">
+                    <div class="bar-fill" id="rad-fill" style="width: 0%;"></div>
+                    <span class="bar-label"><i class="fas fa-biohazard"></i> Radiation</span>
+                </div>
             </div>
         </div>
 
@@ -145,11 +153,15 @@
 
         </div>
         <button id="start-button">START SURVIVAL</button>
-        <p style="margin-top: 20px; font-size: 0.8rem; opacity: 0.5;">Version 4.0 - High Realism Update</p>
+        <p style="margin-top: 20px; font-size: 0.8rem; opacity: 0.5;">Version 5.0 - Full Evolution Update</p>
+    </div>
+
+    <div id="rad-overlay"
+        style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; background: radial-gradient(circle, transparent 40%, rgba(39, 174, 96, 0.4) 100%); opacity:0; z-index:90;">
     </div>
 
     <script type="module">
-        import './js/game.js?v=4.0';
+        import './js/game.js?v=5.0';
     </script>
 
 
