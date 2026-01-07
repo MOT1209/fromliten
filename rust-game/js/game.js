@@ -34,61 +34,65 @@ const state = {
     stats: { health: 100, hunger: 100, calories: 500, hydration: 500 },
     buildMode: false,
     viewMode: 'first',
-    controls: { forward: false, backward: false, left: false, right: false, jump: false, canJump: false, crouch: false }
+    controls: { forward: false, backward: false, left: false, right: false, jump: false, canJump: false, crouch: false },
+    selectedCategory: 'common',
+    selectedItem: null,
+    craftQty: 1
 };
 
 const ITEMS_DATA = {
     // Resources
-    'wood': { name: 'Wood', icon: 'fa-tree', color: '#5d4037' },
-    'stone': { name: 'Stone', icon: 'fa-gem', color: '#757575' },
-    'iron': { name: 'Metal Ore', icon: 'fa-cube', color: '#90a4ae' },
-    'sulfur': { name: 'Sulfur Ore', icon: 'fa-flask', color: '#ffeb3b' },
-    'scrap': { name: 'Scrap', icon: 'fa-nut-bolt', color: '#bcaae1' },
+    'wood': { name: 'Wood', category: 'resources', icon: 'fa-tree', color: '#5d4037', desc: 'Basic building material harvested from trees.' },
+    'stone': { name: 'Stone', category: 'resources', icon: 'fa-gem', color: '#757575', desc: 'Solid rock used for primitive tools and stone walls.' },
+    'iron': { name: 'Metal Ore', category: 'resources', icon: 'fa-cube', color: '#90a4ae', desc: 'Raw ore that can be smelted into high-quality metal.' },
+    'sulfur': { name: 'Sulfur Ore', category: 'resources', icon: 'fa-flask', color: '#ffeb3b', desc: 'Yellow crystalline substance used for gunpowder.' },
+    'scrap': { name: 'Scrap', category: 'resources', icon: 'fa-nut-bolt', color: '#bcaae1', desc: 'Essential currency for tech progression.' },
     // Components
-    'gear_comp': { name: 'Gears', icon: 'fa-gear', color: '#9e9e9e' },
-    'pipe': { name: 'Metal Pipe', icon: 'fa-water', color: '#b0bec5' },
-    'spring': { name: 'Spring', icon: 'fa-coil', color: '#cfd8dc' },
+    'gear_comp': { name: 'Gears', category: 'items', icon: 'fa-gear', color: '#9e9e9e', desc: 'Mechanical parts for complex machines.' },
+    'pipe': { name: 'Metal Pipe', category: 'items', icon: 'fa-water', color: '#b0bec5', desc: 'High grade metal pipe for weapons.' },
+    'spring': { name: 'Spring', category: 'items', icon: 'fa-coil', color: '#cfd8dc', desc: 'Tension spring used in automatic weapons.' },
     // Tools
-    'axe': { name: 'Hatchet', icon: 'fa-axe', recipe: { wood: 100, stone: 50 } },
-    'pickaxe': { name: 'Pickaxe', icon: 'fa-hammer-war', recipe: { wood: 50, stone: 100 } },
-    'hammer': { name: 'Hammer', icon: 'fa-hammer', recipe: { wood: 50, iron: 10 } },
-    'torch': { name: 'Torch', icon: 'fa-fire', recipe: { wood: 50 } },
+    'axe': { name: 'Hatchet', category: 'tools', icon: 'fa-axe', recipe: { wood: 100, stone: 50 }, desc: 'A sharp tool for efficient wood harvesting.' },
+    'pickaxe': { name: 'Pickaxe', category: 'tools', icon: 'fa-hammer-war', recipe: { wood: 50, stone: 100 }, desc: 'Heavy duty tool for mining rocks and minerals.' },
+    'hammer': { name: 'Hammer', category: 'tools', icon: 'fa-hammer', recipe: { wood: 50, iron: 10 }, desc: 'Used for building and upgrading structures.' },
+    'torch': { name: 'Torch', category: 'tools', icon: 'fa-fire', recipe: { wood: 50 }, desc: 'Provides light in the dark. Can be used as a weapon.' },
     // Weapons
-    'spear': { name: 'Wood Spear', icon: 'fa-pencil', recipe: { wood: 300 } },
-    'bow': { name: 'Hunting Bow', icon: 'fa-bow-arrow', recipe: { wood: 200 } },
-    'pistol': { name: 'Semi Pistol', icon: 'fa-gun', recipe: { iron: 100, pipe: 1 } },
-    'rifle': { name: 'Assault Rifle', icon: 'fa-jet-fighter', recipe: { iron: 250, spring: 2, pipe: 1 } },
-    'smg': { name: 'Custom SMG', icon: 'fa-shield', recipe: { iron: 150, spring: 1 } },
+    'spear': { name: 'Wood Spear', category: 'weapons', icon: 'fa-pencil', recipe: { wood: 300 }, desc: 'Long range primitive melee weapon.' },
+    'bow': { name: 'Hunting Bow', category: 'weapons', icon: 'fa-bow-arrow', recipe: { wood: 200 }, desc: 'Silent ranged weapon for hunting and combat.' },
+    'pistol': { name: 'Semi Pistol', category: 'weapons', icon: 'fa-gun', recipe: { iron: 100, pipe: 1 }, desc: 'A reliable handmade 9mm sidearm.' },
+    'rifle': { name: 'Assault Rifle', category: 'weapons', icon: 'fa-jet-fighter', recipe: { iron: 250, spring: 2, pipe: 1 }, desc: 'High capacity automatic rifle. The king of combat.' },
+    'smg': { name: 'Custom SMG', category: 'weapons', icon: 'fa-shield', recipe: { iron: 150, spring: 1 }, desc: 'Fast firing rate, great for close quarters.' },
     // Ammo
-    'arrow': { name: 'Arrows', icon: 'fa-location-arrow', recipe: { wood: 10 } },
-    'pistol_ammo': { name: 'Pistol Bullets', icon: 'fa-circle', recipe: { iron: 5, sulfur: 5 } },
-    'rifle_ammo': { name: 'Rifle Bullets', icon: 'fa-circle-dot', recipe: { iron: 10, sulfur: 10 } },
+    'arrow': { name: 'Arrows', category: 'ammo', icon: 'fa-location-arrow', recipe: { wood: 10 }, desc: 'Ammo for the hunting bow.' },
+    'pistol_ammo': { name: 'Pistol Bullets', category: 'ammo', icon: 'fa-circle', recipe: { iron: 5, sulfur: 5 }, desc: '9mm rounds for the semi-automatic pistol.' },
+    'rifle_ammo': { name: 'Rifle Bullets', category: 'ammo', icon: 'fa-circle-dot', recipe: { iron: 10, sulfur: 10 }, desc: 'High velocity 5.56mm rounds.' },
     // Armor & Clothing
-    'helmet': { name: 'Metal Helmet', icon: 'fa-hat-cowboy', recipe: { iron: 50 } },
-    'armor': { name: 'Metal Chestplate', icon: 'fa-shirt', recipe: { iron: 100 } },
-    'clothing': { name: 'Pants', icon: 'fa-socks', recipe: { wood: 50 } },
-    'hazmat': { name: 'Hazmat Suit', icon: 'fa-user-ninja', recipe: { iron: 200, scrap: 50 } },
+    'helmet': { name: 'Metal Helmet', category: 'clothing', icon: 'fa-hat-cowboy', recipe: { iron: 50 }, desc: 'Protects the head from projectile damage.' },
+    'armor': { name: 'Metal Chestplate', category: 'clothing', icon: 'fa-shirt', recipe: { iron: 100 }, desc: 'Heavy metal plate armor for maximum protection.' },
+    'clothing': { name: 'Pants', category: 'clothing', icon: 'fa-socks', recipe: { wood: 50 }, desc: 'Basic leg covering for warmth.' },
+    'hazmat': { name: 'Hazmat Suit', category: 'clothing', icon: 'fa-user-ninja', recipe: { iron: 200, scrap: 50 }, desc: 'Full body protection from deadly radiation.' },
     // Buidling
-    'foundation': { name: 'Foundation', icon: 'fa-square', recipe: { wood: 200 } },
-    'wall': { name: 'Wall', icon: 'fa-border-all', recipe: { wood: 100 } },
-    'door': { name: 'Wooden Door', icon: 'fa-door-closed', recipe: { wood: 300 } },
-    'lock': { name: 'Key Lock', icon: 'fa-lock', recipe: { iron: 100 } },
-    'ladder': { name: 'Wooden Ladder', icon: 'fa-ladder-water', recipe: { wood: 100 } },
+    'foundation': { name: 'Foundation', category: 'construction', icon: 'fa-square', recipe: { wood: 200 }, desc: 'The starting point for any structure.' },
+    'wall': { name: 'Wall', category: 'construction', icon: 'fa-border-all', recipe: { wood: 100 }, desc: 'Provides vertical protection and privacy.' },
+    'door': { name: 'Wooden Door', category: 'construction', icon: 'fa-door-closed', recipe: { wood: 300 }, desc: 'Allows access while keeping others out.' },
+    'lock': { name: 'Key Lock', category: 'construction', icon: 'fa-lock', recipe: { iron: 100 }, desc: 'Secure your doors from unwanted guests.' },
+    'ladder': { name: 'Wooden Ladder', category: 'construction', icon: 'fa-ladder-water', recipe: { wood: 100 }, desc: 'Used to climb onto higher structures.' },
     // Devices
-    'workbench': { name: 'Workbench', icon: 'fa-table-list', recipe: { wood: 500, iron: 100 } },
-    'furnace': { name: 'Furnace', icon: 'fa-fire-burner', recipe: { stone: 200, wood: 50 } },
-    'generator': { name: 'Generator', icon: 'fa-bolt', recipe: { iron: 500, gear_comp: 2 } },
-    'battery': { name: 'Large Battery', icon: 'fa-battery-full', recipe: { iron: 200, scrap: 100 } },
+    'workbench': { name: 'Workbench', category: 'electrical', icon: 'fa-table-list', recipe: { wood: 500, iron: 100 }, desc: 'Required for advanced crafting tech.' },
+    'furnace': { name: 'Furnace', category: 'electrical', icon: 'fa-fire-burner', recipe: { stone: 200, wood: 50 }, desc: 'Used for smelting raw ores into metals.' },
+    'generator': { name: 'Generator', category: 'electrical', icon: 'fa-bolt', recipe: { iron: 500, gear_comp: 2 }, desc: 'Produces electricity for machines.' },
+    'battery': { name: 'Large Battery', category: 'electrical', icon: 'fa-battery-full', recipe: { iron: 200, scrap: 100 }, desc: 'Stores electrical energy for nighttime use.' },
     // Food & Medical
-    'meat': { name: 'Cooked Meat', icon: 'fa-drumstick-bite', recipe: { wood: 10 } },
-    'water': { name: 'Water Jug', icon: 'fa-bottle-water', recipe: { iron: 10 } },
-    'syringe': { name: 'Medical Syringe', icon: 'fa-syringe', recipe: { iron: 20, scrap: 5 } },
-    'bandage': { name: 'Bandage', icon: 'fa-band-aid', recipe: { clothing: 1 } },
+    'meat': { name: 'Cooked Meat', category: 'medical', icon: 'fa-drumstick-bite', recipe: { wood: 10 }, desc: 'Restores a significant amount of health and hunger.' },
+    'water': { name: 'Water Jug', category: 'medical', icon: 'fa-bottle-water', recipe: { iron: 10 }, desc: 'Keeps you hydrated in the harsh environment.' },
+    'syringe': { name: 'Medical Syringe', category: 'medical', icon: 'fa-syringe', recipe: { iron: 20, scrap: 5 }, desc: 'Instant health restoration for emergencies.' },
+    'bandage': { name: 'Bandage', category: 'medical', icon: 'fa-band-aid', recipe: { clothing: 1 }, desc: 'Stops bleeding and slowly restores health.' },
     // Transport
-    'horse': { name: 'Horse Saddle', icon: 'fa-horse', recipe: { scrap: 100 } },
-    'boat': { name: 'Rowboat', icon: 'fa-ship', recipe: { wood: 500, scrap: 50 } },
-    'minicopter': { name: 'Minicopter', icon: 'fa-helicopter', recipe: { scrap: 750, iron: 500 } }
+    'horse': { name: 'Horse Saddle', category: 'common', icon: 'fa-horse', recipe: { scrap: 100 }, desc: 'Allows you to ride horses across the island.' },
+    'boat': { name: 'Rowboat', category: 'common', icon: 'fa-ship', recipe: { wood: 500, scrap: 50 }, desc: 'A simple boat for navigating water.' },
+    'minicopter': { name: 'Minicopter', category: 'common', icon: 'fa-helicopter', recipe: { scrap: 750, iron: 500 }, desc: 'Personal air transport for long distances.' }
 };
+
 
 
 let playerMesh;
@@ -425,61 +429,146 @@ try {
             playerMesh.visible = (state.viewMode === 'third');
         }
         if (e.code === 'KeyE' || e.code === 'Escape') {
-
             const inv = document.getElementById('inventory');
-            if (inv.style.display === 'block') {
+            if (inv.style.display === 'flex') {
                 inv.style.display = 'none';
                 pointerControls.lock();
             } else {
-                inv.style.display = 'block';
+                inv.style.display = 'flex';
                 pointerControls.unlock();
-
                 initPlayerPreview();
-
-                // Populate Main Inventory (24 slots)
-                const mainGrid = document.getElementById('main-inventory-grid');
-                mainGrid.innerHTML = '';
-                const itemsToDisplay = state.inventory.filter(i => i.count > 0);
-
-                for (let i = 0; i < 24; i++) {
-                    const slot = document.createElement('div');
-                    slot.className = 'inv-slot';
-                    if (itemsToDisplay[i]) {
-                        const itemData = ITEMS_DATA[itemsToDisplay[i].id];
-                        if (itemData) {
-                            slot.innerHTML = `<i class="fas ${itemData.icon}"></i><span class="slot-count">${itemsToDisplay[i].count}</span>`;
-                            slot.title = itemData.name;
-                        }
-                    }
-                    mainGrid.appendChild(slot);
-                }
-
-                // Populate Belt (6 slots)
-                const beltGrid = document.getElementById('belt-inventory-grid');
-                beltGrid.innerHTML = '';
-                for (let i = 0; i < 6; i++) {
-                    const slot = document.createElement('div');
-                    slot.className = 'inv-slot';
-                    if (i === 0) slot.innerHTML = `<i class="fas fa-hand-fist"></i>`;
-                    if (i === 1) slot.innerHTML = `<i class="fas fa-hammer"></i>`;
-                    beltGrid.appendChild(slot);
-                }
-
-                // Populate Crafting List
-                const craftList = document.querySelector('.crafting-list');
-                craftList.innerHTML = '';
-                Object.keys(ITEMS_DATA).forEach(id => {
-                    const item = ITEMS_DATA[id];
-                    if (item.recipe) {
-                        const div = document.createElement('div');
-                        div.className = 'craft-item';
-                        div.innerHTML = `<span>${item.name}</span><small>${Object.entries(item.recipe).map(([res, amt]) => `${amt} ${res}`).join(', ')}</small>`;
-                        div.onclick = () => craftItem(id);
-                        craftList.appendChild(div);
-                    }
-                });
+                initCraftingUI();
             }
         }
+    });
+
+    function initCraftingUI() {
+        // Categories
+        const cats = document.querySelectorAll('.category-item');
+        cats.forEach(c => {
+            c.onclick = () => {
+                cats.forEach(k => k.classList.remove('active'));
+                c.classList.add('active');
+                state.selectedCategory = c.dataset.category;
+                renderCraftingGrid();
+            };
+        });
+
+        // Search
+        const search = document.getElementById('item-search');
+        search.oninput = () => renderCraftingGrid();
+
+        renderCraftingGrid();
+        renderBelt();
+    }
+
+    function renderCraftingGrid() {
+        const grid = document.getElementById('crafting-item-grid');
+        const searchTerm = document.getElementById('item-search').value.toLowerCase();
+        grid.innerHTML = '';
+
+        Object.keys(ITEMS_DATA).forEach(id => {
+            const item = ITEMS_DATA[id];
+            if (!item.recipe) return; // Only show craftable items
+            
+            const matchCat = state.selectedCategory === 'common' || item.category === state.selectedCategory;
+            const matchSearch = item.name.toLowerCase().includes(searchTerm);
+
+            if (matchCat && matchSearch) {
+                const slot = document.createElement('div');
+                slot.className = 'craft-slot' + (state.selectedItem === id ? ' active' : '');
+                slot.innerHTML = `<i class="fas ${item.icon}"></i>`;
+                slot.onclick = () => {
+                    state.selectedItem = id;
+                    state.craftQty = 1;
+                    renderCraftingGrid();
+                    showCraftingDetail(id);
+                };
+                grid.appendChild(slot);
+            }
+        });
+    }
+
+    function showCraftingDetail(id) {
+        const panel = document.getElementById('crafting-detail-panel');
+        const item = ITEMS_DATA[id];
+        
+        let costHTML = '';
+        let canCraft = true;
+
+        Object.entries(item.recipe).forEach(([res, amt]) => {
+            const needed = amt * state.craftQty;
+            const have = getItemCount(res);
+            const missing = have < needed;
+            if (missing) canCraft = false;
+
+            costHTML += `
+                <div class="cost-item ${missing ? 'missing' : ''}">
+                    <span>${needed}</span>
+                    <span>${ITEMS_DATA[res].name}</span>
+                    <span>${needed}</span>
+                    <span>${have}</span>
+                </div>
+            `;
+        });
+
+        panel.innerHTML = `
+            <div class="detail-header">
+                <div class="detail-title">${item.name}</div>
+                <div class="detail-subtitle">WORKBENCH LEVEL 1 REQUIRED</div>
+            </div>
+            <div class="detail-desc">${item.desc}</div>
+            <div class="cost-list">
+                <div class="cost-header">
+                    <span>AMOUNT</span>
+                    <span>ITEM TYPE</span>
+                    <span>TOTAL</span>
+                    <span>HAVE</span>
+                </div>
+                ${costHTML}
+            </div>
+            <div class="action-row">
+                <div class="qty-control">
+                    <div class="qty-btn" onclick="updateCraftQty(-1)">-</div>
+                    <div class="qty-val">${state.craftQty}</div>
+                    <div class="qty-btn" onclick="updateCraftQty(1)">+</div>
+                </div>
+                <button class="craft-btn" ${canCraft ? '' : 'disabled'} onclick="performCraft('${id}')">CRAFT</button>
+            </div>
+        `;
+    }
+
+    // Global exposed for onclick
+    window.updateCraftQty = (val) => {
+        state.craftQty = Math.max(1, state.craftQty + val);
+        if (state.selectedItem) showCraftingDetail(state.selectedItem);
+    };
+
+    window.performCraft = (id) => {
+        const item = ITEMS_DATA[id];
+        for (let [res, amt] of Object.entries(item.recipe)) {
+            const needed = amt * state.craftQty;
+            const inventoryItem = state.inventory.find(i => i.id === res);
+            if (inventoryItem) inventoryItem.count -= needed;
+        }
+        addItem(id, state.craftQty);
+        updateHUD();
+        showCraftingDetail(id); // Refresh view
+    };
+
+    function renderBelt() {
+        const beltGrid = document.getElementById('belt-inventory-grid');
+        beltGrid.innerHTML = '';
+        for (let i = 0; i < 6; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'inv-slot';
+            // Placeholder logic for belt
+            if (i === 0) slot.innerHTML = `<i class="fas fa-hand-fist"></i>`;
+            if (i === 1) slot.innerHTML = `<i class="fas fa-axe"></i>`;
+            beltGrid.appendChild(slot);
+        }
+    }
+
     });
 
     function craftItem(id) {
@@ -532,7 +621,7 @@ try {
     });
 
     pointerControls.addEventListener('unlock', () => {
-        if (document.getElementById('inventory').style.display !== 'block') {
+        if (document.getElementById('inventory').style.display !== 'flex') {
             document.getElementById('instructions').style.display = 'flex';
         }
     });
