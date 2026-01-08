@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rust Survival 3D - Ultra</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/building.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="importmap">
         {
@@ -55,8 +56,48 @@
 
         <div id="crosshair"></div>
 
+        <!-- Blueprint Selector -->
+        <div id="blueprint-selector" style="display:none;">
+            <div class="blueprint-title">SELECT BLUEPRINT</div>
+            <div class="blueprint-grid">
+                <div class="blueprint-item" data-type="foundation" title="Foundation - Base structure">
+                    <i class="fas fa-square"></i>
+                    <span>Foundation</span>
+                </div>
+                <div class="blueprint-item" data-type="wall" title="Wall - Vertical protection">
+                    <i class="fas fa-border-all"></i>
+                    <span>Wall</span>
+                </div>
+                <div class="blueprint-item" data-type="doorway" title="Doorway - Entry point">
+                    <i class="fas fa-door-open"></i>
+                    <span>Doorway</span>
+                </div>
+                <div class="blueprint-item" data-type="ceiling" title="Ceiling - Roof protection">
+                    <i class="fas fa-th-large"></i>
+                    <span>Ceiling</span>
+                </div>
+            </div>
+            <div class="blueprint-footer">Press Q to close</div>
+        </div>
+
+        <!-- Build Info Panel -->
+        <div id="build-info" style="display:none;">
+            <div class="build-info-line"><i class="fas fa-layer-group"></i> <span id="build-tier">Twig</span></div>
+            <div class="build-info-line"><i class="fas fa-heart"></i> <span id="build-health">10/10</span></div>
+            <div class="build-info-line"><i class="fas fa-arrow-up"></i> <span id="build-upgrade">Wood (300)</span>
+            </div>
+        </div>
+
         <div id="interaction-hint">Press LMB to interact</div>
         <div id="build-mode-hint">Build Mode: Active (RMB to exit)</div>
+        <div id="tc-status" style="display:none;">Building Blocked</div>
+
+        <!-- Hotkeys Display -->
+        <div id="hotkeys-display">
+            <div class="hotkey-item"><span class="key">Q</span> Blueprint</div>
+            <div class="hotkey-item"><span class="key">G</span> Build Mode</div>
+            <div class="hotkey-item"><span class="key">H</span> Upgrade/Repair</div>
+        </div>
 
         <div class="hotbar">
             <div class="hotbar-slot active" id="slot-1"><i class="fas fa-hand-fist"></i></div>
@@ -153,7 +194,7 @@
 
         </div>
         <button id="start-button">START SURVIVAL</button>
-        <p style="margin-top: 20px; font-size: 0.8rem; opacity: 0.5;">Version 5.0 - Full Evolution Update</p>
+        <p style="margin-top: 20px; font-size: 0.8rem; opacity: 0.5;">Version 6.0 - Advanced Building System</p>
     </div>
 
     <div id="rad-overlay"
@@ -161,7 +202,7 @@
     </div>
 
     <script type="module">
-        import './js/game.js?v=5.0';
+        import './js/game.js?v=6.0';
     </script>
 
 

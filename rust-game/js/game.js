@@ -24,8 +24,10 @@ const CONFIG = {
 // ==================== STATE ====================
 const state = {
     inventory: [
-        { id: 'wood', count: 500 }, // Start with some for testing
-        { id: 'stone', count: 200 }
+        { id: 'wood', count: 1000 },
+        { id: 'stone', count: 500 },
+        { id: 'frag', count: 300 },
+        { id: 'hqm', count: 100 }
     ],
     gear: { head: null, chest: null, legs: null, feet: null },
     belt: Array(6).fill(null),
@@ -36,7 +38,31 @@ const state = {
     selectedCategory: 'common',
     selectedItem: null,
     craftQty: 1,
-    time: 300 // Start at noon
+    time: 300,
+    // Building System
+    building: {
+        blueprintOpen: false,
+        selectedBlueprint: null, // 'foundation', 'wall', 'doorway', 'ceiling'
+        placingStructure: false,
+        lookingAtStructure: null,
+        toolCupboards: [] // [{pos, radius}]
+    }
+};
+
+// Building Materials Database
+const BUILDING_TIERS = {
+    twig: { name: 'Twig', health: 10, color: 0xd7ccc8, cost: {} },
+    wood: { name: 'Wood', health: 250, color: 0x8d6e63, cost: { wood: 300 } },
+    stone: { name: 'Stone', health: 500, color: 0xb0bec5, cost: { stone: 300 } },
+    metal: { name: 'Sheet Metal', health: 1000, color: 0x90a4ae, cost: { frag: 200 } },
+    hqm: { name: 'Armored', health: 2000, color: 0xeceff1, cost: { hqm: 50 } }
+};
+
+const BUILDING_TYPES = {
+    foundation: { name: 'Foundation', geometry: [3, 0.2, 3], offset: [0, 0.1, 0] },
+    wall: { name: 'Wall', geometry: [3, 3, 0.2], offset: [0, 1.5, 0] },
+    doorway: { name: 'Doorway', geometry: [3, 3, 0.2], offset: [0, 1.5, 0], hasDoor: true },
+    ceiling: { name: 'Ceiling', geometry: [3, 0.2, 3], offset: [0, 3, 0] }
 };
 
 const ITEMS_DATA = {
@@ -251,6 +277,189 @@ try {
 
     const interactables = [];
     const collisionObjects = [];
+    const builtStructures = [];
+
+    // ==================== BUILDING SYSTEM ====================
+    function initBlueprintSelector() {
+        const blueprintItems = document.querySelectorAll('.blueprint-item');
+        blueprintItems.forEach(item => {
+            item.onclick = () => {
+                const type = item.dataset.type;
+                state.building.selectedBlueprint = type;
+                state.building.blueprintOpen = false;
+                document.getElementById('blueprint-selector').style.display = 'none';
+                console.log(`Blueprint selected: ${type}`);
+            };
+        });
+    }
+
+    function canBuildHere(position) {
+        // Check Tool Cupboard privilege
+        for (let tc of state.building.toolCupboards) {
+            const dist = Math.sqrt((position.x - tc.pos.x) ** 2 + (position.z - tc.pos.z) ** 2);
+            if (dist < tc.radius) return false; // Building blocked
+        }
+        return true;
+    }
+
+    function placeStructure() {
+        if (!state.building.selectedBlueprint) return;
+        const blueprint = state.building.selectedBlueprint;
+        const buildData = BUILDING_TYPES[blueprint];
+
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+        const hits = raycaster.intersectObjects([ground, ...builtStructures], true);
+
+        if (hits.length > 0 && hits[0].distance < 10) {
+            const point = hits[0].point;
+
+            // Snap to grid
+            const snapX = Math.round(point.x / 3) * 3;
+            const snapY = buildData.offset[1];
+            const snapZ = Math.round(point.z / 3) * 3;
+
+            if (!canBuildHere({ x: snapX, z: snapZ })) {
+                document.getElementById('tc-status').style.display = 'block';
+                setTimeout(() => document.getElementById('tc-status').style.display = 'none', 2000);
+                return;
+            }
+
+            // Create structure (starts as Twig)
+            const geometry = new THREE.BoxGeometry(...buildData.geometry);
+            const material = new THREE.MeshStandardMaterial({
+                color: BUILDING_TIERS.twig.color,
+                roughness: 0.8
+            });
+            const structure = new THREE.Mesh(geometry, material);
+            structure.position.set(snapX, snapY, snapZ);
+            structure.castShadow = true;
+            structure.receiveShadow = true;
+
+            structure.userData = {
+                type: 'structure',
+                buildType: blueprint,
+                tier: 'twig',
+                health: BUILDING_TIERS.twig.health,
+                maxHealth: BUILDING_TIERS.twig.health
+            };
+
+            scene.add(structure);
+            builtStructures.push(structure);
+            collisionObjects.push(structure);
+
+            console.log(`Placed ${blueprint} at (${snapX}, ${snapY}, ${snapZ})`);
+        }
+    }
+
+    function upgradeStructure(structure) {
+        const currentTier = structure.userData.tier;
+        const tierOrder = ['twig', 'wood', 'stone', 'metal', 'hqm'];
+        const currentIndex = tierOrder.indexOf(currentTier);
+
+        if (currentIndex >= tierOrder.length - 1) {
+            console.log('Structure already at max tier');
+            return;
+        }
+
+        const nextTier = tierOrder[currentIndex + 1];
+        const cost = BUILDING_TIERS[nextTier].cost;
+
+        // Check resources
+        let canAfford = true;
+        for (let [res, amt] of Object.entries(cost)) {
+            if (getItemCount(res) < amt) {
+                canAfford = false;
+                break;
+            }
+        }
+
+        if (!canAfford) {
+            console.log('Not enough resources for upgrade');
+            return;
+        }
+
+        // Consume resources
+        for (let [res, amt] of Object.entries(cost)) {
+            const inv = state.inventory.find(i => i.id === res);
+            if (inv) inv.count -= amt;
+        }
+
+        // Apply upgrade
+        structure.userData.tier = nextTier;
+        structure.userData.maxHealth = BUILDING_TIERS[nextTier].health;
+        structure.userData.health = BUILDING_TIERS[nextTier].health;
+        structure.material.color.setHex(BUILDING_TIERS[nextTier].color);
+
+        updateHUD();
+        console.log(`Upgraded to ${nextTier}`);
+    }
+
+    function repairStructure(structure) {
+        if (structure.userData.health >= structure.userData.maxHealth) {
+            console.log('Structure at full health');
+            return;
+        }
+
+        const tier = structure.userData.tier;
+        const cost = BUILDING_TIERS[tier].cost;
+        const repairAmount = structure.userData.maxHealth * 0.1; // 10% per repair
+
+        // Check resources (uses same cost as upgrade)
+        if (tier !== 'twig') {
+            let canAfford = true;
+            for (let [res, amt] of Object.entries(cost)) {
+                const needed = Math.ceil(amt * 0.1); // 10% of upgrade cost
+                if (getItemCount(res) < needed) {
+                    canAfford = false;
+                    break;
+                }
+            }
+
+            if (!canAfford) {
+                console.log('Not enough resources for repair');
+                return;
+            }
+
+            // Consume resources
+            for (let [res, amt] of Object.entries(cost)) {
+                const needed = Math.ceil(amt * 0.1);
+                const inv = state.inventory.find(i => i.id === res);
+                if (inv) inv.count -= needed;
+            }
+        }
+
+        structure.userData.health = Math.min(structure.userData.maxHealth, structure.userData.health + repairAmount);
+        updateHUD();
+        console.log(`Repaired structure to ${structure.userData.health}/${structure.userData.maxHealth}`);
+    }
+
+    function updateBuildInfo(structure) {
+        const panel = document.getElementById('build-info');
+        if (!structure || structure.userData.type !== 'structure') {
+            panel.style.display = 'none';
+            return;
+        }
+
+        const tier = structure.userData.tier;
+        const tierOrder = ['twig', 'wood', 'stone', 'metal', 'hqm'];
+        const currentIndex = tierOrder.indexOf(tier);
+        const nextTier = currentIndex < tierOrder.length - 1 ? tierOrder[currentIndex + 1] : null;
+
+        document.getElementById('build-tier').textContent = BUILDING_TIERS[tier].name;
+        document.getElementById('build-health').textContent = `${Math.round(structure.userData.health)}/${structure.userData.maxHealth}`;
+
+        if (nextTier) {
+            const cost = BUILDING_TIERS[nextTier].cost;
+            const costStr = Object.entries(cost).map(([res, amt]) => `${res} (${amt})`).join(', ');
+            document.getElementById('build-upgrade').textContent = `${BUILDING_TIERS[nextTier].name}: ${costStr}`;
+        } else {
+            document.getElementById('build-upgrade').textContent = 'MAX TIER';
+        }
+
+        panel.style.display = 'block';
+        state.building.lookingAtStructure = structure;
+    }
 
     // Realistic Procedural Trees
     for (let i = 0; i < CONFIG.TREE_COUNT; i++) {
@@ -554,6 +763,25 @@ try {
         if (e.code === 'KeyD') state.controls.right = true;
         if (e.code === 'Space' && state.controls.canJump) { velocity.y += CONFIG.JUMP_FORCE; state.controls.canJump = false; }
         if (e.code === 'KeyV') { state.viewMode = state.viewMode === 'first' ? 'third' : 'first'; if (playerMesh) playerMesh.visible = (state.viewMode === 'third'); }
+
+        if (e.code === 'KeyQ') {
+            state.building.blueprintOpen = !state.building.blueprintOpen;
+            document.getElementById('blueprint-selector').style.display = state.building.blueprintOpen ? 'block' : 'none';
+        }
+        if (e.code === 'KeyG') {
+            state.building.selectedBlueprint = null;
+            document.getElementById('build-info').style.display = 'none';
+        }
+        if (e.code === 'KeyH') {
+            if (state.building.lookingAtStructure) {
+                if (state.building.lookingAtStructure.userData.health < state.building.lookingAtStructure.userData.maxHealth) {
+                    repairStructure(state.building.lookingAtStructure);
+                } else {
+                    upgradeStructure(state.building.lookingAtStructure);
+                }
+            }
+        }
+
         if (e.code === 'KeyE' || e.code === 'Escape') {
             const inv = document.getElementById('inventory');
             if (inv.style.display === 'flex') { inv.style.display = 'none'; pointerControls.lock(); }
@@ -577,12 +805,23 @@ try {
 
     window.addEventListener('mousedown', (e) => {
         if (!pointerControls.isLocked) return;
-        if (e.button === 0) performAction();
+        if (e.button === 0) {
+            // Left Click: Place structure or perform action
+            if (state.building.selectedBlueprint) {
+                placeStructure();
+            } else {
+                performAction();
+            }
+        }
         if (e.button === 2) { state.buildMode = !state.buildMode; const hint = document.getElementById('build-mode-hint'); if (hint) hint.style.display = state.buildMode ? 'block' : 'none'; }
     });
 
     const startBtn = document.getElementById('start-button');
     if (startBtn) startBtn.onclick = () => pointerControls.lock();
+
+    // Initialize Building System
+    initBlueprintSelector();
+
     pointerControls.addEventListener('lock', () => {
         document.getElementById('instructions').style.display = 'none';
         document.getElementById('inventory').style.display = 'none';
@@ -655,6 +894,17 @@ try {
             }
             updateGhost();
             updateHUDSimulation();
+
+            // Structure Inspection
+            const inspectRay = new THREE.Raycaster();
+            inspectRay.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const structureHits = inspectRay.intersectObjects(builtStructures, true);
+            if (structureHits.length > 0 && structureHits[0].distance < 5) {
+                updateBuildInfo(structureHits[0].object);
+            } else {
+                document.getElementById('build-info').style.display = 'none';
+                state.building.lookingAtStructure = null;
+            }
         }
         const originalCamPos = camera.position.clone();
         if (state.viewMode === 'third') {

@@ -1,0 +1,157 @@
+/* Blueprint Selector */
+#blueprint-selector {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(10, 10, 10, 0.95);
+    border: 2px solid var(--primary);
+    padding: 30px;
+    border-radius: 8px;
+    z-index: 2000;
+    min-width: 500px;
+}
+
+.blueprint-title {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--primary);
+    text-align: center;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+}
+
+.blueprint-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.blueprint-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-radius: 4px;
+}
+
+.blueprint-item:hover {
+    background: rgba(205, 92, 44, 0.2);
+    border-color: var(--primary);
+    transform: translateY(-3px);
+}
+
+.blueprint-item i {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 10px;
+    color: var(--primary);
+}
+
+.blueprint-item span {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #ccc;
+}
+
+.blueprint-footer {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #888;
+    font-style: italic;
+}
+
+/* Build Info Panel */
+#build-info {
+    position: fixed;
+    top: 50%;
+    left: 50px;
+    transform: translateY(-50%);
+    background: rgba(10, 10, 10, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 4px;
+    z-index: 150;
+    min-width: 200px;
+}
+
+.build-info-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.build-info-line:last-child {
+    margin-bottom: 0;
+}
+
+.build-info-line i {
+    color: var(--primary);
+}
+
+/* TC Status */
+#tc-status {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(231, 76, 60, 0.9);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 4px;
+    font-weight: 900;
+    font-size: 1.2rem;
+    z-index: 200;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Hotkeys Display */
+#hotkeys-display {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 110;
+}
+
+.hotkey-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(10, 10, 10, 0.7);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #ccc;
+}
+
+.hotkey-item .key {
+    background: var(--primary);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-weight: 900;
+    min-width: 25px;
+    text-align: center;
+}
