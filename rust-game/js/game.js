@@ -284,13 +284,43 @@ try {
         const blueprintItems = document.querySelectorAll('.blueprint-item');
         blueprintItems.forEach(item => {
             item.onclick = () => {
+                // Remove active class from all items
+                blueprintItems.forEach(i => i.classList.remove('selected'));
+
                 const type = item.dataset.type;
                 state.building.selectedBlueprint = type;
                 state.building.blueprintOpen = false;
+
+                // Add active class to selected item
+                item.classList.add('selected');
+
+                // Hide blueprint selector
                 document.getElementById('blueprint-selector').style.display = 'none';
-                console.log(`Blueprint selected: ${type}`);
+
+                // Show selected blueprint indicator
+                updateBlueprintIndicator();
+
+                console.log(`✅ Blueprint selected: ${type}`);
             };
         });
+    }
+
+    function updateBlueprintIndicator() {
+        let indicator = document.getElementById('blueprint-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'blueprint-indicator';
+            indicator.style.cssText = 'position:fixed; top:100px; left:50%; transform:translateX(-50%); background:rgba(205,92,44,0.95); color:white; padding:12px 25px; border-radius:6px; font-weight:900; font-size:1rem; z-index:200; box-shadow:0 4px 12px rgba(0,0,0,0.5);';
+            document.body.appendChild(indicator);
+        }
+
+        if (state.building.selectedBlueprint) {
+            const name = BUILDING_TYPES[state.building.selectedBlueprint].name;
+            indicator.innerHTML = `📐 Selected: <span style="color:#ffd700;">${name}</span> (Press G to cancel)`;
+            indicator.style.display = 'block';
+        } else {
+            indicator.style.display = 'none';
+        }
     }
 
     function canBuildHere(position) {
@@ -549,26 +579,70 @@ try {
         npcs.push(new NPC(scene, type, new THREE.Vector3(x, getTerrainHeight(x, z), z)));
     }
 
-    // Ghost/Building
-    const buildGeo = new THREE.BoxGeometry(1.5, 1.5, 1.5);
-    const ghost = new THREE.Mesh(buildGeo, new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.4 }));
-    ghost.visible = false;
-    scene.add(ghost);
     const builtObjects = [];
 
 
     // Animation & Logic Functions
+    let ghostMesh = null;
+
     function updateGhost() {
-        if (!state.buildMode) { ghost.visible = false; return; }
+        // Remove old ghost if blueprint changed
+        if (ghostMesh && state.building.selectedBlueprint) {
+            const currentType = state.building.selectedBlueprint;
+            const currentGeo = BUILDING_TYPES[currentType].geometry;
+            const currentGeoStr = currentGeo.join(',');
+            const ghostGeoStr = [ghostMesh.geometry.parameters.width, ghostMesh.geometry.parameters.height, ghostMesh.geometry.parameters.depth].join(',');
+
+            if (currentGeoStr !== ghostGeoStr) {
+                scene.remove(ghostMesh);
+                ghostMesh = null;
+            }
+        }
+
+        if (!state.building.selectedBlueprint) {
+            if (ghostMesh) {
+                ghostMesh.visible = false;
+            }
+            return;
+        }
+
+        const blueprint = state.building.selectedBlueprint;
+        const buildData = BUILDING_TYPES[blueprint];
+
+        // Create ghost if doesn't exist
+        if (!ghostMesh) {
+            const geometry = new THREE.BoxGeometry(...buildData.geometry);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x00ff00,
+                transparent: true,
+                opacity: 0.4,
+                wireframe: false
+            });
+            ghostMesh = new THREE.Mesh(geometry, material);
+            scene.add(ghostMesh);
+        }
+
         const r = new THREE.Raycaster();
         r.setFromCamera(new THREE.Vector2(0, 0), camera);
-        const hit = r.intersectObjects([ground, ...builtObjects]);
-        if (hit.length > 0 && hit[0].distance < CONFIG.BUILD_DISTANCE) {
-            const p = hit[0].point; const n = hit[0].face.normal;
-            ghost.position.set(Math.round(p.x + n.x * 0.5), Math.round(p.y + n.y * 0.5), Math.round(p.z + n.z * 0.5));
-            ghost.visible = true;
-            ghost.material.color.setHex(getItemCount('wood') >= 10 ? 0x00ff00 : 0xff0000);
-        } else { ghost.visible = false; }
+        const hit = r.intersectObjects([ground, ...builtStructures]);
+
+        if (hit.length > 0 && hit[0].distance < 10) {
+            const p = hit[0].point;
+
+            // Snap to grid
+            const snapX = Math.round(p.x / 3) * 3;
+            const snapY = buildData.offset[1];
+            const snapZ = Math.round(p.z / 3) * 3;
+
+            ghostMesh.position.set(snapX, snapY, snapZ);
+            ghostMesh.visible = true;
+
+            // Check if can build here
+            const canBuild = canBuildHere({ x: snapX, z: snapZ });
+            ghostMesh.material.color.setHex(canBuild ? 0x00ff00 : 0xff0000);
+        } else {
+            if (ghostMesh) ghostMesh.visible = false;
+        }
     }
 
     function checkCollisions(newPos) {
@@ -771,6 +845,8 @@ try {
         if (e.code === 'KeyG') {
             state.building.selectedBlueprint = null;
             document.getElementById('build-info').style.display = 'none';
+            updateBlueprintIndicator(); // Update indicator
+            console.log('❌ Blueprint cancelled');
         }
         if (e.code === 'KeyH') {
             if (state.building.lookingAtStructure) {
